@@ -515,11 +515,13 @@ export class UsersController {
                         return;
                   }
 
-                  const response = successResponse(HTTP_STATUS.OK.message, `Correo electrónico de restablecimiento de contraseña enviado a ${updatedUser.email} con el endpoint : ${CONFIG.API_URL}/users/resetPassword?token=${updatedUser.password_reset_token}`, updatedUser);
+                  req.message = `Correo electrónico de restablecimiento de contraseña enviado a ${updatedUser.email} con el endpoint : ${CONFIG.API_URL}/users/resetPassword?token=${updatedUser.password_reset_token}`;
+                  req.payload = updatedUser;
+                  req.HTTP_STATUS = HTTP_STATUS.OK;
 
-                  if (response.payload.password) response.payload.password = undefined;
-
-                  res.status(200).json(response);
+                  successResponse(req, res, () => {
+                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
+                  })
 
                   await sendResetPassword(updatedUser.email, updatedUser.password_reset_token);
 
@@ -551,9 +553,13 @@ export class UsersController {
 
                   await sendResetPasswordConfirmation(payload.email);
 
-                  const response = successResponse(HTTP_STATUS.OK.message, `Contraseña de usuario ${updatedUser.email}, restablecida correctamente`);
+                  req.message = `Contraseña de usuario ${updatedUser.email}, actualizada correctamente`;
+                  req.payload = updatedUser;
+                  req.HTTP_STATUS = HTTP_STATUS.OK;
 
-                  res.status(200).json(response);
+                  successResponse(req, res, () => {
+                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
+                  });
 
             } catch (error) {
 
@@ -573,16 +579,13 @@ export class UsersController {
 
                   const user = req.user;
 
-                  const response = successResponse(HTTP_STATUS.OK.message, `Usuario ${user.email}, encontrado correctamente`, user);
+                  req.message = `Usuario ${user.email}, encontrado correctamente`;
+                  req.payload = user;
+                  req.HTTP_STATUS = HTTP_STATUS.OK;
 
-                  if (!response.payload) {
-                        req.logger.warning(`El usuario ${user.email}, no existe`);
-                        return;
-                  }
-
-                  if (response.payload.password) response.payload.password = undefined;
-
-                  res.status(200).json(response);
+                  successResponse(req, res, () => {
+                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
+                  });
 
             } catch (error) {
 
