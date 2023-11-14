@@ -6,6 +6,8 @@ const MAIL = {
       pass: CONFIG.MAIL.password
 };
 
+const URL = CONFIG.API_URL;
+
 const TRANSPORTER = nodemailer.createTransport({
 
       service: 'gmail',
@@ -173,7 +175,7 @@ export async function sendResetPassword(email, token) {
           <h3>(El enlace expira en 1 hora y en caso de que haya expirado, se te redirigirá a la página de recuperación de contraseña para solicitar uno nuevo)</h3>
       </div>
       <div>
-              <p>http://localhost:8080/resetPassword?token=${token}&createdAt=${createdAt}</p>
+              <p>${URL}/resetPassword?token=${token}&createdAt=${createdAt}</p>
       </div>
 
       <div>
