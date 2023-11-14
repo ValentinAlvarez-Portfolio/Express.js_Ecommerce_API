@@ -116,6 +116,48 @@ export async function sendGoodbyeEmail(email) {
 
 }
 
+export async function sendInactiveEmail(emails) {
+
+      const HTML = `
+      <h1>Tu cuenta ha sido eliminada por inactividad</h1>
+      <div>
+              <h2>Gracias por haberte registrado</h2>
+      </div>
+      <div>
+                  <p>Esperamos que vuelvas pronto</p>
+      </div>
+
+      <div>
+                        <p>Saludos</p>
+      </div>
+
+      <div>
+
+                        <h3> Como siempre, gracias por confiar en nosotros</h3>
+      </div>
+
+      `;
+
+      const mailOptions = {
+            from: MAIL.user,
+            to: emails,
+            subject: 'Adios',
+            html: HTML,
+      };
+
+      return new Promise((resolve, reject) => {
+            TRANSPORTER.sendMail(mailOptions, (error, info) => {
+                  if (error) {
+                        reject(error);
+                  } else {
+                        resolve(info);
+                  }
+            });
+      });
+
+
+}
+
 export async function sendResetPassword(email, token) {
 
       const now = new Date();
@@ -188,6 +230,46 @@ export async function sendResetPasswordConfirmation(email) {
             from: MAIL.user,
             to: email,
             subject: 'Recuperar contraseña',
+            html: HTML,
+      };
+
+      return new Promise((resolve, reject) => {
+            TRANSPORTER.sendMail(mailOptions, (error, info) => {
+                  if (error) {
+                        reject(error);
+                  } else {
+                        resolve(info);
+                  }
+            });
+      });
+
+}
+
+export async function sendDeletedProductEmail(email, product) {
+
+      const HTML = `
+      <h1>Producto eliminado</h1>
+      <div>
+          <h2>El producto ${product.title} ha sido eliminado</h2>
+      </div>
+      <div>
+              <p>El producto ya no esta disponible para la venta</p>
+      </div>
+
+      <div>
+                  <p>Saludos</p>
+      </div>
+
+      <div>
+                  <h3> Como siempre, gracias por confiar en nosotros</h3>
+      </div>
+
+      `;
+
+      const mailOptions = {
+            from: MAIL.user,
+            to: email,
+            subject: 'Producto eliminado',
             html: HTML,
       };
 

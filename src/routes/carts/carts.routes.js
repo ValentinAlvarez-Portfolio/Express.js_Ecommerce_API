@@ -6,16 +6,18 @@ import {
 } from '../../controllers/carts/carts.controller.js';
 
 import {
-    authUser as userMiddleware
+    authUser as userMiddleware,
+    authAdmin as adminMiddleware
 } from '../../middlewares/auth.middleware.js';
 
 const cartsRouter = Router();
 
-cartsRouter.get('/', CartsController.getAll);
-cartsRouter.get('/:code', CartsController.getOne);
+cartsRouter.get('/', adminMiddleware, CartsController.getAll);
 cartsRouter.post('/', CartsController.saveOne);
-cartsRouter.post('/:code/purchase', userMiddleware, CartsController.purchaseCart);
-cartsRouter.put('/', userMiddleware, CartsController.addProduct);
-cartsRouter.delete('/', CartsController.deleteCart);
+cartsRouter.delete('/', adminMiddleware, CartsController.deleteCart);
+cartsRouter.get('/:code', CartsController.getOne);
+cartsRouter.put('/products', userMiddleware, CartsController.addProduct);
+cartsRouter.delete('/products', userMiddleware, CartsController.deleteProduct);
+cartsRouter.post('/purchase', userMiddleware, CartsController.purchaseCart);
 
 export default cartsRouter;

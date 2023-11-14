@@ -25,8 +25,11 @@ resetPasswordRequestForm.addEventListener('submit', (e) => {
             alert('Se ha enviado un email con las instrucciones para reestablecer la contraseña');
 
         } else {
-            console.log(response);
-            alert('Error al enviar el email');
+            response.json().then(data => {
+
+                alert(data.error);
+
+            });
         }
     });
 });

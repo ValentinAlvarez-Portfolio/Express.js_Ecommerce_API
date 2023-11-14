@@ -29,7 +29,11 @@ resetPasswordForm.addEventListener('submit', (e) => {
 
         } else {
 
-            console.error(response);
+            response.json().then(data => {
+
+                alert(data.error);
+
+            });
 
         }
 

@@ -1,0 +1,191 @@
+openapi: 3.0.0
+info:
+  version: 0.9.0
+  title: Products API
+  description: API para el manejo de productos.
+
+tags:
+- name: Carts
+  description: Operaciones relacionadas con carritos
+
+paths:
+  /api/carts:
+    get:
+      tags:
+        - Carts
+      summary: Obtener todos los carritos. (Solo administradores.).
+      security:
+        - CookieAuth: []
+      responses:
+        200:
+          description: Listado de carritos.
+
+        401:
+          description: No está autorizado.
+
+        500:
+          description: Error interno del servidor.
+
+    post:
+      tags:
+        - Carts
+      summary: Añadir un nuevo carrito a un usuario. (Solo quienes hayan iniciado sesión y no tengan carrito.).
+      security:
+        - CookieAuth: []
+
+      responses:
+        200:
+          description: Carrito añadido correctamente.
+
+      400:
+        description: Error en los datos proporcionados.
+
+      401:
+        description: No está autorizado.
+
+      500:
+        description: Error interno del servidor.
+
+    delete:
+      tags:
+        - Carts
+      summary: Eliminar un carrito por código. (Solo administradores.).
+      security:
+        - CookieAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+
+      responses:
+        200:
+          description: Carrito eliminado correctamente.
+
+        401:
+          description: No está autorizado.
+
+        404:
+          description: No se ha encontrado el carrito.
+
+        500:
+          description: Error interno del servidor.
+
+  /api/carts/{code}:
+    get:
+      tags:
+        - Carts
+      summary: Obtener un carrito por código (Solo usuarios que hayan iniciado sesión y que sea su carrito.).
+      security:
+        - CookieAuth: []
+      parameters:
+        - in: path
+          name: code
+          schema:
+            type: string
+          required: true
+          description: Código del carrito.
+      responses:
+        
+        200:
+          description: Detalles del carrito.
+
+        401:
+          description: No está autorizado.
+
+        404:
+          description: No se ha encontrado el carrito.
+
+        500:
+          description: Error interno del servidor.
+
+  /api/carts/products:
+    put:
+      tags:
+        - Carts
+      summary: Agregar un producto al carrito de un usuario. (Solo usuarios que hayan iniciado sesión.).
+      security:
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                productId:
+                  type: string
+                quantity:
+                  type: number
+      responses:
+        200:
+          description: Carrito actualizado correctamente.
+
+        400:
+          description: Error en los datos proporcionados.
+
+        401:
+          description: No está autorizado.
+
+        404:
+          description: No se ha encontrado el carrito.
+
+        500:
+          description: Error interno del servidor.
+
+    delete:
+      tags:
+        - Carts
+      summary: Eliminar de a 1, la cantidad de un producto de un carrito, con el código del carrito y el ID del producto. (Solo usuarios que hayan iniciado sesión.).
+      security:
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                productId:
+                  type: string
+
+      responses:
+        200:
+          description: Producto eliminado correctamente.
+
+        401:
+          description: No está autorizado.
+
+        404:
+          description: No se ha encontrado el carrito o el producto.
+
+        500:
+          description: Error interno del servidor.
+
+    
+  /api/carts/purchase:
+    post:
+      tags:
+        - Carts
+      summary: Comprar un carrito. (Solo usuarios que hayan iniciado sesión.).
+      security:
+        - CookieAuth: []
+          
+      responses:
+        200:
+          description: Carrito comprado correctamente.
+
+        401:
+          description: No está autorizado.
+
+        404:
+          description: No se ha encontrado el carrito.
+
+        500:
+          description: Error interno del servidor.
+  
+                      

@@ -15,7 +15,10 @@ export const authFromHeader = (req, res, next) => {
 
         if (!headerAuth) {
 
-            return res.status(HTTP_STATUS.UNAUTHORIZED).json(errorResponse('No se ha enviado el token de autenticación'));
+            return res.status(HTTP_STATUS.UNAUTHORIZED.status).json(errorResponse(HTTP_STATUS.UNAUTHORIZED.message, 'No se ha enviado el token de autenticación', {
+                method: req.method,
+                url: req.originalUrl
+            }));
 
         };
 
@@ -33,6 +36,33 @@ export const authFromHeader = (req, res, next) => {
 
     };
 
+};
+
+export const authRedirect = (req, res, next) => {
+
+    try {
+
+        const cookieAuth = req.cookies.auth;
+
+        if (!cookieAuth) {
+
+            return res.redirect('/login');
+
+        };
+
+        const token = cookieAuth;
+
+        const decoded = verifyJWT(token);
+
+        req.user = decoded.payload;
+
+        next();
+
+    } catch (error) {
+
+        throw error;
+
+    }
 };
 
 export const authFromCookie = (req, res, next) => {
@@ -72,7 +102,10 @@ export const authAdmin = (req, res, next) => {
 
         if (!cookieAuth) {
 
-            return res.status(HTTP_STATUS.UNAUTHORIZED).json(errorResponse('No se ha enviado el token de autenticación'));
+            return res.status(HTTP_STATUS.UNAUTHORIZED.status).json(errorResponse(HTTP_STATUS.UNAUTHORIZED.message, 'No se ha enviado el token de autenticación', {
+                method: req.method,
+                url: req.originalUrl
+            }));
 
         };
 
@@ -82,7 +115,10 @@ export const authAdmin = (req, res, next) => {
 
         if (decoded.payload.role !== 'ADMIN') {
 
-            return res.status(HTTP_STATUS.UNAUTHORIZED).json(errorResponse('No está autorizado para acceder a este recurso'));
+            return res.status(HTTP_STATUS.UNAUTHORIZED.status).json(errorResponse(HTTP_STATUS.UNAUTHORIZED.message, 'No está autorizado para acceder a este recurso', {
+                method: req.method,
+                url: req.originalUrl
+            }))
 
         };
 
@@ -106,7 +142,10 @@ export const authPremium = (req, res, next) => {
 
         if (!cookieAuth) {
 
-            return res.status(HTTP_STATUS.UNAUTHORIZED).json(errorResponse('No se ha enviado el token de autenticación'));
+            return res.status(HTTP_STATUS.UNAUTHORIZED.status).json(errorResponse(HTTP_STATUS.UNAUTHORIZED.message, 'No se ha enviado el token de autenticación', {
+                method: req.method,
+                url: req.originalUrl
+            }));
 
         };
 
@@ -116,7 +155,10 @@ export const authPremium = (req, res, next) => {
 
         if (decoded.payload.role !== 'ADMIN' && decoded.payload.role !== 'PREMIUM') {
 
-            return res.status(HTTP_STATUS.UNAUTHORIZED).json(errorResponse('No está autorizado para acceder a este recurso'));
+            return res.status(HTTP_STATUS.UNAUTHORIZED.status).json(errorResponse(HTTP_STATUS.UNAUTHORIZED.message, 'No está autorizado para acceder a este recurso', {
+                method: req.method,
+                url: req.originalUrl
+            }))
 
         };
 
@@ -140,7 +182,10 @@ export const authUser = (req, res, next) => {
 
         if (!cookieAuth) {
 
-            return res.status(HTTP_STATUS.UNAUTHORIZED).json(errorResponse('No se ha enviado el token de autenticación'));
+            return res.status(HTTP_STATUS.UNAUTHORIZED.status).json(errorResponse(HTTP_STATUS.UNAUTHORIZED.message, 'No se ha enviado el token de autenticación', {
+                method: req.method,
+                url: req.originalUrl
+            }));
 
         };
 
@@ -152,7 +197,10 @@ export const authUser = (req, res, next) => {
 
         if (role === 'ADMIN') {
 
-            return res.status(HTTP_STATUS.UNAUTHORIZED).json(errorResponse('No está autorizado para acceder a este recurso'));
+            return res.status(HTTP_STATUS.UNAUTHORIZED.status).json(errorResponse(HTTP_STATUS.UNAUTHORIZED.message, 'No está autorizado para acceder a este recurso', {
+                method: req.method,
+                url: req.originalUrl
+            }))
 
         };
 

@@ -5,9 +5,15 @@ info:
   title: Users API
   description: API para el manejo de usuarios.
 
+tags:
+- name: Users
+  description: Operaciones relacionadas con usuarios
+
 paths:
   /api/users/:
     get:
+      tags:
+      - Users
       summary: Obtener todos los usuarios.
       security:
         - CookieAuth: []
@@ -19,6 +25,8 @@ paths:
 
   /api/users/login:
     post:
+      tags:
+      - Users
       summary: Iniciar sesión como usuario.
       requestBody:
         required: true
@@ -34,11 +42,15 @@ paths:
       responses:
         200:
           description: Usuario ha iniciado sesión correctamente.
-        401:
+        400:
+          description: Error en los datos proporcionados.
+        500:
           description: Credenciales incorrectas.
   
   /api/users/login/admin:
     post:
+      tags:
+      - Users
       summary: Iniciar sesión como administrador.
       requestBody:
         required: true
@@ -54,11 +66,15 @@ paths:
       responses:
         200:
           description: Administrador ha iniciado sesión correctamente.
-        401:
+        400:
+          description: Error en los datos proporcionados.
+        500:
           description: Credenciales incorrectas o el usuario no es un administrador.
           
   /api/users/register:
     post:
+      tags:
+      - Users
       summary: Registrar un nuevo usuario.
       requestBody:
         required: true
@@ -87,6 +103,8 @@ paths:
   
   /api/users/logout:
     post:
+      tags:
+      - Users
       summary: Cerrar sesión del usuario.
       security:
         - CookieAuth: []
@@ -96,6 +114,8 @@ paths:
 
   /api/users/{uid}/documents:
     post:
+      tags:
+      - Users
       summary: Sube uno o múltiples documentos para un usuario.
       description: Permite a un usuario subir documentos que serán almacenados y asociados a su perfil.
       parameters:
@@ -140,6 +160,8 @@ paths:
 
   /api/users/premium/{id}:
     put:
+      tags:
+      - Users
       summary: Actualizar rol del usuario.
       security:
         - CookieAuth: []
@@ -162,7 +184,7 @@ paths:
       responses:
         200:
           description: Rol del usuario actualizado correctamente.
-        400:
+        500:
           description: Error en los datos proporcionados.
         401:
           description: No está autorizado.
@@ -171,7 +193,11 @@ paths:
 
   /api/users/update:
     put:
+      tags:
+      - Users
       summary: Actualizar información del usuario.
+      security:
+        - CookieAuth: []
       requestBody:
         required: true
         content:
@@ -195,12 +221,42 @@ paths:
 
   /api/users/delete:
     delete:
+      tags:
+      - Users
       summary: Eliminar cuenta de usuario.
+      security:
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
       responses:
         200:
           description: Usuario eliminado correctamente.
         400:
           description: Error al intentar eliminar el usuario.
+        500:
+          description: Error al intentar eliminar el usuario.
+
+  /api/users/deleteInactive:
+    delete:
+      tags:
+      - Users
+      summary: Eliminar usuarios inactivos.
+      security:
+        - CookieAuth: []
+      responses:
+        200:
+          description: Usuarios inactivos eliminados correctamente.
+        400:
+          description: Error al intentar eliminar los usuarios inactivos.
+        500:
+          description: Error al intentar eliminar los usuarios inactivos.
 
 components:
   securitySchemes:

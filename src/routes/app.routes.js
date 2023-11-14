@@ -26,6 +26,10 @@ import {
 } from '../middlewares/logger.middleware.js';
 
 import {
+      errorHandlerMiddleware as errorHandler,
+} from '../middlewares/responses.middleware.js';
+
+import {
       swaggerOptions
 } from '../utils/swagger/swagger.utils.js';
 
@@ -40,5 +44,6 @@ router.use('/api/products', authMiddleware, productsRouter);
 router.use('/api/carts', authMiddleware, cartsRouter);
 router.use('/api/mocks', adminMiddleware, usersMocksRouter, productsMocksRouter, cartsMocksRouter);
 router.use('/api/docs', swaggerUiExpress.serve, swaggerUiExpress.setup(spec));
+router.use(errorHandler)
 
 export default router;

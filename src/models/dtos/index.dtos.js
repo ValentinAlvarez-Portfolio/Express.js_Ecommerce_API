@@ -8,6 +8,7 @@ import {
       UpdateRoleUserDTO,
       UpdateUserDTO,
       DeleteUserDTO,
+      DeleteInactiveUsersDTO,
       LoadAdminDTO,
       CreateResetTokenDTO,
       ResetPasswordDTO
@@ -37,6 +38,7 @@ export const getDTOS = () => ({
       UpdateRoleUserDTO,
       UpdateUserDTO,
       DeleteUserDTO,
+      DeleteInactiveUsersDTO,
       LoadAdminDTO,
       CreateResetTokenDTO,
       ResetPasswordDTO,

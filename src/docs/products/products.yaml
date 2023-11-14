@@ -5,10 +5,18 @@ info:
   title: Products API
   description: API para el manejo de productos.
 
+tags:
+- name: Products
+  description: Operaciones relacionadas con productos
+
 paths:
   /api/products:
     get:
+      tags:
+      - Products
       summary: Obtener todos los productos
+      security:
+        - CookieAuth: []
       parameters:
         - in: query
           name: limit
@@ -29,7 +37,7 @@ paths:
           name: query
           schema:
             type: string
-          description: Query de búsqueda.
+          description: Búsqueda por categoría.
       responses:
         200:
           description: Listado de productos.
@@ -38,6 +46,8 @@ paths:
           description: No está autorizado.
 
     post:
+      tags:
+      - Products
       summary: Añadir un nuevo producto.
       security:
         - CookieAuth: []
@@ -78,7 +88,11 @@ paths:
 
   /api/products/{id}:
     get:
+      tags:
+      - Products
       summary: Obtener un producto por ID
+      security:
+        - CookieAuth: []
       parameters:
         - in: path
           name: id
@@ -96,6 +110,8 @@ paths:
         500:
           description: No se ha encontrado el producto.
     put:
+      tags:
+      - Products
       summary: Actualizar un producto por ID
       security:
         - CookieAuth: []
@@ -143,6 +159,8 @@ paths:
         404:
           description: No se ha encontrado.
     delete:
+      tags:
+      - Products
       summary: Eliminar un producto por ID
       security:
         - CookieAuth: []

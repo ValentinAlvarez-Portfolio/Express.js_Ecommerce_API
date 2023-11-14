@@ -16,6 +16,7 @@ const {
       UpdateRoleUserDTO,
       UpdateUserDTO,
       DeleteUserDTO,
+      DeleteInactiveUsersDTO,
       LoadAdminDTO,
       CreateResetTokenDTO,
       ResetPasswordDTO
@@ -61,11 +62,31 @@ export class UsersRepository {
 
       async loginOne(payload, user) {
 
+            const now = new Date();
+
+            const date = now;
+
             const userPayload = new LoadUserDTO(payload, user);
 
             if (userPayload.errors) throw new Error(JSON.stringify(userPayload.errors));
 
-            return userPayload;
+            let userToUpdate = await this.dao.getOne(userPayload);
+
+            userToUpdate = {
+                  ...userToUpdate,
+                  last_connection: {
+                        last_login: date,
+                        last_logout: userToUpdate.last_connection.last_logout ? userToUpdate.last_connection.last_logout : undefined
+                  }
+            }
+
+            const userToLogin = new LoadUserDTO(payload, userToUpdate);
+
+            if (userToLogin.errors) throw new Error(JSON.stringify(userToLogin.errors));
+
+            const result = await this.dao.updateOne(userToLogin);
+
+            return result ? userToLogin : result;
 
       };
 
@@ -77,9 +98,41 @@ export class UsersRepository {
 
             const user = await this.dao.addOne(userPayload);
 
-            return user;
+            return userPayload;
 
       };
+
+      async logout(payload) {
+
+            const now = new Date();
+
+            const date = now;
+
+            const userPayload = new GetUserDTO(payload);
+
+            if (userPayload.errors) throw new Error(JSON.stringify(userPayload.errors));
+
+            let user = await this.dao.getOne(userPayload);
+
+            user = {
+                  ...user,
+                  last_connection: {
+                        last_login: user.last_connection.last_login ? user.last_connection.last_login : null,
+                        last_logout: date
+                  }
+            }
+
+            const userToUpdate = new LoadUserDTO({
+                  email: payload
+            }, user);
+
+            if (userToUpdate.errors) throw new Error(JSON.stringify(userToUpdate.errors));
+
+            const result = await this.dao.updateOne(userToUpdate);
+
+            return result ? userToUpdate : result;
+
+      }
 
       async uploadDocuments(_id, files) {
 
@@ -93,6 +146,8 @@ export class UsersRepository {
 
             if (userWithDocuments.errors) throw new Error(JSON.stringify(userWithDocuments.errors));
 
+            if (userWithDocuments.password) delete userWithDocuments.password;
+
             const result = await this.dao.updateOne(userWithDocuments);
 
             return result ? userWithDocuments : result;
@@ -102,7 +157,7 @@ export class UsersRepository {
       async updateRole(payload) {
 
             const user = await this.dao.getOne({
-                  email: payload.email.toLowerCase(),
+                  email: payload.email ? payload.email.toLowerCase() : null,
                   _id: payload._id
             });
 
@@ -148,7 +203,9 @@ export class UsersRepository {
 
             if (updatedPayload.errors) throw new Error(JSON.stringify(updatedPayload.errors));
 
-            return await this.dao.updateOne(updatedPayload);
+            const result = await this.dao.updateOne(updatedPayload);
+
+            return result ? updatedPayload : result;
 
       };
 
@@ -158,7 +215,25 @@ export class UsersRepository {
 
             const payloadToDelete = new DeleteUserDTO(payload, userToDelete);
 
-            return await this.dao.deleteOne(payloadToDelete, payloadToDelete.email);
+            const result = await this.dao.deleteOne(payloadToDelete, payloadToDelete.email);
+
+            return result ? payloadToDelete : result;
+      };
+
+      async deleteInactive() {
+
+            const users = await this.dao.getAll();
+
+            const usersToDelete = new DeleteInactiveUsersDTO(users);
+
+            if (usersToDelete.errors) throw new Error(JSON.stringify(usersToDelete.errors));
+
+            const result = await this.dao.deleteInactive(usersToDelete.usersEmailsToDelete);
+
+            return {
+                  result: result,
+                  users: usersToDelete.usersEmailsToDelete
+            };
 
       };
 
@@ -186,7 +261,9 @@ export class UsersRepository {
 
             if (userToUpdate.errors) throw new Error(JSON.stringify(userToUpdate.errors));
 
-            return await this.dao.updateOne(userToUpdate);
+            const result = await this.dao.updateOne(userToUpdate);
+
+            return result ? userToUpdate : result;
 
       };
 
@@ -202,7 +279,9 @@ export class UsersRepository {
 
             if (updatedUser.errors) throw new Error(JSON.stringify(updatedUser.errors));
 
-            return await this.dao.updateOne(updatedUser);
+            const result = await this.dao.updateOne(updatedUser);
+
+            return result ? updatedUser : result;
 
       };
 

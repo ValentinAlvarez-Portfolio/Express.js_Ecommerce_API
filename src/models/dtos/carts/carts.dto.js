@@ -5,9 +5,10 @@ import ticketModel from "../../schemas/ticket.schema.js";
 
 export class GetCartDTO {
 
-    constructor(code) {
+    constructor(payload) {
 
-        this.code = code;
+        this.code = payload.code;
+        this.email = payload.email;
 
     }
 
@@ -24,6 +25,12 @@ export class GetCartDTO {
             throw new Error('El carrito no existe');
 
         }
+
+        if (cart.user.email !== this.email) {
+
+            throw new Error('Este carrito no te pertenece');
+
+        };
 
         return cart;
 
@@ -45,7 +52,9 @@ export class SaveCartDTO {
 
         const cart = new cartsModel({
             code: code,
-            user: this.user,
+            user: {
+                email: this.user
+            },
             products: []
         });
 
@@ -57,8 +66,10 @@ export class SaveCartDTO {
 
 export class DeleteCartDTO {
 
-    constructor(code, productId) {
+    constructor(code, user) {
         this.code = code;
+        this.email = user.email;
+        this.role = user.role;
     }
 
     async prepareData() {
@@ -68,6 +79,18 @@ export class DeleteCartDTO {
             code: this.code
 
         });
+
+        if (!cart) {
+
+            throw new Error('El carrito no existe');
+
+        };
+
+        if (cart.user.email !== this.email && this.role !== 'ADMIN') {
+
+            throw new Error('Este carrito no te pertenece');
+
+        };
 
         return cart;
 
@@ -100,17 +123,21 @@ export class AddProductDTO {
 
         };
 
-        if (product.stock < this.quantity) {
-
-            throw new Error('No hay suficiente stock del producto');
-
-        };
-
         const cart = await cartsModel.findOne({
 
             code: this.code
 
         })
+
+        const productQuantityInCart = cart.products.find(p => p.product.toString() === this.productId);
+
+        const totalQuantity = productQuantityInCart ? productQuantityInCart.quantity + this.quantity : this.quantity;
+
+        if (product.stock === 0 || totalQuantity > product.stock) {
+
+            throw new Error('No hay suficiente stock del producto');
+
+        };
 
         if (!cart) {
 
@@ -118,11 +145,18 @@ export class AddProductDTO {
 
         };
 
-        const ownerId = product.owner.toString();
+        const owner_id = product.owner ? product.owner.toString() : product.adminOwner;
+
+        const user_id = this.user._id ? this.user._id.toString() : 'ADMIN';
 
         if (this.user.role === 'ADMIN' || this.user.role === 'PREMIUM') {
 
-            if (ownerId === this.user.id) {
+            if (owner_id === true && this.user.role === 'ADMIN') {
+
+                throw new Error('No puedes comprar tus propios productos');
+            }
+
+            if (owner_id === user_id) {
 
                 throw new Error('No puedes comprar tus propios productos');
 
@@ -147,8 +181,6 @@ export class AddProductDTO {
                 quantity: Number(this.quantity)
             };
 
-            console.log(productToAdd);
-
             cart.products.push(productToAdd);
 
         }
@@ -159,13 +191,14 @@ export class AddProductDTO {
 
 };
 
-// FALTA IMPLEMENTAR
 
 export class DeleteProductFromCartDTO {
 
-    constructor(code, productId) {
-        this.code = code;
-        this.productId = productId;
+    constructor(payload) {
+        this.code = payload.code;
+        this.productId = payload.productId;
+        this.email = payload.email;
+        this.role = payload.role;
     }
 
     async prepareData() {
@@ -176,38 +209,11 @@ export class DeleteProductFromCartDTO {
 
         });
 
-        const productIndex = cart.products.findIndex(p => p.product.toString() === this.productId);
+        const productPayload = await productsModel.findOne({
 
-        if (productIndex > -1) {
+            _id: this.productId
 
-            cart.products.splice(productIndex, 1);
-
-        };
-
-        return cart;
-
-    };
-
-};
-
-// FALTA IMPLEMENTAR
-
-
-export class PurchaseCartDTO {
-
-    constructor(code) {
-
-        this.code = code;
-
-    }
-
-    async prepareData() {
-
-        const cart = await cartsModel.findOne({
-
-            code: this.code
-
-        }).populate('products.product');
+        });
 
         if (!cart) {
 
@@ -215,43 +221,133 @@ export class PurchaseCartDTO {
 
         };
 
-        const productsNotProcessed = [];
+        if (cart.user.email !== this.email && this.role !== 'ADMIN') {
 
-        let amount = 0;
+            throw new Error('Este carrito no te pertenece');
 
-        for (let product of cart.products) {
+        };
 
-            const productInDB = await productsModel.findOne({
+        if (cart.products.length === 0) {
 
-                _id: product.product._id
+            throw new Error('El carrito está vacío');
+
+        };
+
+        const productsInCart = cart.products.map(p => ({
+            product: p.product.toString(),
+            quantity: p.quantity,
+            price: p.price
+        }));
+
+        if (!productsInCart.find(p => p.product === this.productId)) {
+
+            throw new Error('El producto no está en el carrito');
+
+        };
+
+        const productInCart = productsInCart.find(p => p.product === this.productId);
+
+        if (productInCart.quantity > 1) {
+
+            productsInCart.map(p => {
+
+                if (p.product === this.productId) {
+
+                    p.quantity -= 1;
+
+                };
 
             });
 
-            if (productInDB.stock < product.quantity) {
+        } else {
 
-                productsNotProcessed.push(product.product._id);
-                continue;
+            productsInCart.splice(productsInCart.indexOf(productInCart), 1);
+
+        };
+
+        cart.products = productsInCart;
+
+        return cart;
+
+
+    };
+
+};
+
+export class PurchaseCartDTO {
+
+    constructor(payload) {
+
+        this.cart = payload.cart.payload;
+        this.products = payload.cart.payload.products;
+        this.email = payload.cart.payload.user.email;
+
+    }
+
+    async prepareData() {
+
+        if (this.products.length === 0) {
+
+            throw new Error('El carrito está vacío');
+
+        };
+
+        if (this.cart.user.email !== this.email) {
+
+            throw new Error('Este carrito no te pertenece');
+
+        };
+
+        let amount = 0;
+
+        this.products.map(p => {
+
+            amount += p.price * p.quantity;
+
+        });
+
+        const productsIds = this.products.map(p => p.product);
+
+        productsIds.map(async (id) => {
+
+            const product = await productsModel.findOne({
+
+                _id: id
+
+            });
+
+            const productInCart = this.products.find(p => p.product === id);
+
+            product.stock -= productInCart.quantity;
+
+            if (product.stock === 0) {
+
+                await productsModel.findOneAndDelete({
+                    _id: id
+                });
+
+            } else {
+
+                await productsModel.findOneAndUpdate({
+                    _id: id
+                }, product);
 
             };
 
-            productInDB.stock -= product.quantity;
+        });
 
-            await productInDB.save();
-
-            amount += product.product.price * product.quantity;
-
+        const newCart = {
+            ...this.cart,
+            products: []
         }
-
-        cart.products = cart.products.filter(product => productsNotProcessed.includes(product.product._id));
-
-        await cart.save();
 
         const purchase = {
 
             code: crypto.randomBytes(10).toString('hex'),
             purchase_datetime: new Date(),
             amount: amount,
-            purchaser: 'test@gmail.com'
+            purchaser: this.email,
+            products: productsIds
 
         };
 
@@ -259,8 +355,9 @@ export class PurchaseCartDTO {
         await ticket.save();
 
         return {
-            ticket,
-            productsNotProcessed
-        }
+            ticket: ticket,
+            cart: newCart
+        };
+
     }
 };

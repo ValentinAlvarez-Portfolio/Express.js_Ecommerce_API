@@ -62,4 +62,14 @@ export class UsersMongoDAO {
 
       };
 
+      async deleteInactive(payload) {
+
+            return await usersModel.deleteMany({
+                  email: {
+                        $in: payload
+                  }
+            })
+
+      };
+
 };

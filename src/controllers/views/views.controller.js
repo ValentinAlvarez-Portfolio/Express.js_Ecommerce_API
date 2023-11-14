@@ -13,6 +13,12 @@ const {
 
 export class ViewsController {
 
+    static async home(req, res, next) {
+
+        res.redirect('/products');
+
+    };
+
     static async login(req, res, next) {
 
         res.render('login');
@@ -24,6 +30,12 @@ export class ViewsController {
         res.render('register');
 
     };
+
+    static async modifyRole(req, res, next) {
+
+        res.render('modifyRole');
+
+    }
 
     static async resetPasswordRequest(req, res, next) {
 

@@ -62,14 +62,15 @@ export class SaveProductDTO {
             category: this.payload.category,
             thumbnails: this.payload.thumbnails,
             id: this.payload.id,
-            owner: user._id ? user._id : 'ADMIN',
+            owner: user._id,
+            adminOwner: user.role === 'ADMIN' ? true : false
         }
 
         const campos = [];
 
         Object.keys(product).forEach(key => {
 
-            if (key !== 'status' &&
+            if (key !== 'status' && key !== 'owner' &&
                 key !== 'thumbnails' && product[key] === undefined) {
                 campos.push(key.toUpperCase());
             }

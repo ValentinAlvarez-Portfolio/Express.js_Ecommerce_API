@@ -3,6 +3,22 @@ import {
 } from '../../models/repositories/index.repository.js';
 
 import {
+    HTTP_STATUS
+} from '../../utils/responses/responses.utils.js';
+
+import {
+    prepareProductsSuccessResponse as successResponse
+} from '../../middlewares/responses.middleware.js';
+
+import {
+    logService
+} from '../../services/logger.service.js';
+
+import {
+    sendDeletedProductEmail
+} from '../../utils/mailing/mailing.utils.js';
+
+import {
     verifyJWT
 } from '../../utils/JWT/jwt.utils.js';
 
@@ -37,20 +53,12 @@ export class ProductsController {
 
         } catch (error) {
 
-            let errorAt = error.stack ? error.stack.split('\n')[1].trim() : undefined;
+            logService(HTTP_STATUS.SERVER_ERROR, req, error);
 
-            req.logger.error({
+            next({
                 message: error.message,
-                method: req.method,
-                url: req.originalUrl,
-                date: new Date().toLocaleDateString(),
-                At: errorAt
-            });
-
-            res.status(500).send({
-                status: 'error',
-                payload: error.message
-            });
+                status: HTTP_STATUS.SERVER_ERROR.status
+            })
 
 
         };
@@ -66,28 +74,22 @@ export class ProductsController {
 
             const product = await productsRepository.getById(id);
 
-            res.send({
-                status: 'success',
-                message: `Producto con id: ${id}, encontrado correctamente en la base de datos`,
-                payload: product
+            req.message = `Producto ${product.payload.title}, encontrado correctamente en la base de datos`;
+            req.payload = product;
+            req.HTTP_STATUS = HTTP_STATUS.OK;
+
+            successResponse(req, res, () => {
+                res.status(HTTP_STATUS.OK.status).json(req.successResponse);
             });
 
         } catch (error) {
 
-            let errorAt = error.stack ? error.stack.split('\n')[1].trim() : undefined;
+            logService(HTTP_STATUS.SERVER_ERROR, req, error);
 
-            req.logger.error({
+            next({
                 message: error.message,
-                method: req.method,
-                url: req.originalUrl,
-                date: new Date().toLocaleDateString(),
-                At: errorAt
-            });
-
-            res.status(500).send({
-                status: 'error',
-                payload: error.message
-            });
+                status: HTTP_STATUS.SERVER_ERROR.status
+            })
 
         };
 
@@ -104,27 +106,23 @@ export class ProductsController {
 
             const result = await productsRepository.addOne(product, user);
 
-            res.send({
-                status: 'success',
-                payload: `Producto con id: ${result.id}, guardado correctamente en la base de datos`
+            req.message = `Producto ${product.title}, creado correctamente en la base de datos`;
+            req.payload = result;
+            req.HTTP_STATUS = HTTP_STATUS.CREATED;
+
+            successResponse(req, res, () => {
+                res.status(HTTP_STATUS.CREATED.status).json(req.successResponse);
             });
 
         } catch (error) {
 
-            let errorAt = error.stack ? error.stack.split('\n')[1].trim() : undefined;
+            logService(HTTP_STATUS.SERVER_ERROR, req, error);
 
-            req.logger.error({
+            next({
                 message: error.message,
-                method: req.method,
-                url: req.originalUrl,
-                date: new Date().toLocaleDateString(),
-                At: errorAt
-            });
+                status: HTTP_STATUS.SERVER_ERROR.status
+            })
 
-            res.status(500).send({
-                status: 'error',
-                payload: error.message
-            });
 
         };
 
@@ -144,28 +142,23 @@ export class ProductsController {
 
             const result = await productsRepository.updateOne(id, product, user.payload);
 
-            res.send({
-                status: 'success',
-                message: `Producto con id: ${id}, actualizado correctamente en la base de datos`,
-                payload: result
+            req.message = `Producto ${result.payload.title}, actualizado correctamente en la base de datos`;
+            req.payload = result.payload;
+            req.HTTP_STATUS = HTTP_STATUS.OK;
+
+            successResponse(req, res, () => {
+                res.status(HTTP_STATUS.OK.status).json(req.successResponse);
             });
 
         } catch (error) {
 
-            let errorAt = error.stack ? error.stack.split('\n')[1].trim() : undefined;
+            logService(HTTP_STATUS.SERVER_ERROR, req, error);
 
-            req.logger.error({
+            next({
                 message: error.message,
-                method: req.method,
-                url: req.originalUrl,
-                date: new Date().toLocaleDateString(),
-                At: errorAt
-            });
+                status: HTTP_STATUS.SERVER_ERROR.status
+            })
 
-            res.status(500).send({
-                status: 'error',
-                payload: error.message
-            });
 
         };
 
@@ -184,28 +177,37 @@ export class ProductsController {
 
             const result = await productsRepository.deleteOne(id, user.payload);
 
-            res.send({
-                status: 'success',
-                message: `Producto con id: ${id}, eliminado correctamente de la base de datos`,
-                payload: result
+            try {
+
+                if (result.email) await sendDeletedProductEmail(result.email, result.payload);
+
+            } catch (error) {
+
+                logService(HTTP_STATUS.SERVER_ERROR, req, error);
+
+                next({
+                    message: error.message,
+                    status: HTTP_STATUS.SERVER_ERROR.status
+                })
+
+            }
+
+            req.message = `Producto ${result.payload.title}, eliminado correctamente en la base de datos`;
+            req.payload = result.payload;
+            req.HTTP_STATUS = HTTP_STATUS.OK;
+
+            successResponse(req, res, () => {
+                res.status(HTTP_STATUS.OK.status).json(req.successResponse);
             });
 
         } catch (error) {
 
-            let errorAt = error.stack ? error.stack.split('\n')[1].trim() : undefined;
+            logService(HTTP_STATUS.SERVER_ERROR, req, error);
 
-            req.logger.error({
+            next({
                 message: error.message,
-                method: req.method,
-                url: req.originalUrl,
-                date: new Date().toLocaleDateString(),
-                At: errorAt
-            });
-
-            res.status(500).send({
-                status: 'error',
-                payload: error.message
-            });
+                status: HTTP_STATUS.SERVER_ERROR.status
+            })
 
         };
 

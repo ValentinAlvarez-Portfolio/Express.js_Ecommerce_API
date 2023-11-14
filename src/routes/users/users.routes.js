@@ -29,9 +29,11 @@ usersRouter.post('/login/admin', UsersController.loginAdmin);
 usersRouter.post('/register', UsersController.addOne);
 usersRouter.post('/logout', authMiddleware, UsersController.logout);
 usersRouter.post('/:id/documents', upload.array('documents'), UsersController.uploadDocuments);
+usersRouter.put('/premium', adminMiddleware, UsersController.updateRole);
 usersRouter.put('/premium/:id', adminMiddleware, UsersController.updateRole);
 usersRouter.put('/update', authMiddleware, UsersController.updateOne);
 usersRouter.delete('/delete', authMiddleware, UsersController.deleteOne);
+usersRouter.delete('/deleteInactive', adminMiddleware, UsersController.deleteInactive);
 usersRouter.post('/sendResetPassword', UsersController.resetPasswordRequest);
 usersRouter.post('/resetPassword/:token', UsersController.resetPassword);
 

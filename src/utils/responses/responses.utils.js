@@ -1,11 +1,13 @@
-export const successResponse = (data) => {
+export const successResponse = (status, message, data) => {
       return {
-            success: true,
+            status: status,
+            message: message,
             payload: data,
       }
 }
 
 export const errorResponse = (status, message, error) => {
+
       return {
             status: status,
             message: message,
@@ -17,8 +19,14 @@ export const errorResponse = (status, message, error) => {
 }
 
 export const HTTP_STATUS = {
-      OK: 200,
-      CREATED: 201,
+      OK: {
+            status: 200,
+            message: 200 + ': OK'
+      },
+      CREATED: {
+            status: 201,
+            message: 201 + ': Created'
+      },
       BAD_REQUEST: {
             status: 400,
             message: 400 + ': Bad Request'

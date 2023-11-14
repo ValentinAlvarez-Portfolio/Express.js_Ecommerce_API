@@ -54,11 +54,26 @@ const productsSchema = mongoose.Schema({
       owner: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "users",
+            validate: [ownerValidator, 'No se puede establecer un owner si adminOwner es true']
+      },
+
+      adminOwner: {
+            type: Boolean,
             required: true,
-            default: 'admin'
-      }
+            default: false,
+      },
 
 });
+
+function ownerValidator(value) {
+
+      if (this.adminOwner) {
+            return value == null;
+      }
+
+      return true;
+
+}
 
 productsSchema.plugin(mongoosePaginate)
 

@@ -69,7 +69,7 @@ export class ProductsRepository {
 
         const user = await this.usersDao.getOne(userPayload);
 
-        if (!user.role === 'ADMIN' || !user.role === 'PREMIUM') {
+        if (!userPayload.role === 'ADMIN' || !userPayload.role === 'PREMIUM') {
             throw new Error('No tienes permisos para realizar esta acción')
         }
 
@@ -79,9 +79,20 @@ export class ProductsRepository {
             throw new Error('El producto no existe');
         };
 
-        if (productToUpdate.owner.toString() !== user._id.toString()) {
-            throw new Error('El producto no te pertenece');
-        };
+        const adminOwner = productToUpdate.payload.adminOwner || productToUpdate.adminOwner;
+        const owner = productToUpdate.payload.owner || productToUpdate.owner || null;
+
+        if (adminOwner === true) {
+            if (userPayload.role !== 'ADMIN') {
+                throw new Error('No tienes permisos para realizar esta acción')
+            }
+        }
+
+        if (owner && userPayload.role !== 'ADMIN') {
+            if (owner.toString() !== user._id.toString()) {
+                throw new Error('El producto no te pertenece');
+            }
+        }
 
         const result = await this.dao.updateById(id, product);
 
@@ -95,23 +106,39 @@ export class ProductsRepository {
 
         const user = await this.usersDao.getOne(userPayload);
 
-        if (!user.role === 'ADMIN' || !user.role === 'PREMIUM') {
+        if (!userPayload.role === 'ADMIN' || !userPayload.role === 'PREMIUM') {
             throw new Error('No tienes permisos para realizar esta acción')
         }
 
-        const productToUpdate = await this.getById(id);
+        const productToDelete = await this.getById(id);
 
-        if (!productToUpdate) {
+        if (!productToDelete) {
             throw new Error('El producto no existe');
         };
 
-        if (productToUpdate.owner.toString() !== user._id.toString() && user.role !== 'ADMIN') {
-            throw new Error('El producto no te pertenece');
-        };
+        const adminOwner = productToDelete.payload.adminOwner || productToDelete.adminOwner;
+        const owner = productToDelete.payload.owner || productToDelete.owner || null;
+
+        if (adminOwner === true) {
+            if (userPayload.role !== 'ADMIN') {
+                throw new Error('No tienes permisos para realizar esta acción')
+            }
+        }
+
+        if (owner && userPayload.role !== 'ADMIN') {
+            if (owner.toString() !== user._id.toString()) {
+                throw new Error('El producto no te pertenece');
+            }
+        }
+
+        const email = userPayload.role === 'PREMIUM' ? user.email : undefined;
 
         const result = await this.dao.deleteById(id);
 
-        return productToUpdate;
+        return {
+            ...productToDelete,
+            email: email
+        };
 
     };
 

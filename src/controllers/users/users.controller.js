@@ -1,8 +1,10 @@
 import {
-      successResponse,
       HTTP_STATUS,
-      errorResponse
 } from '../../utils/responses/responses.utils.js';
+
+import {
+      prepareUsersSuccessResponse as successResponse
+} from '../../middlewares/responses.middleware.js';
 
 import {
       getRepositories
@@ -10,15 +12,18 @@ import {
 
 import {
       generateJWT,
-      verifyJWT
 } from '../../utils/JWT/jwt.utils.js';
-
 
 import CONFIG from '../../config/environment/config.js';
 
 import {
+      logService
+} from '../../services/logger.service.js';
+
+import {
       sendWelcomeEmail,
       sendGoodbyeEmail,
+      sendInactiveEmail,
       sendResetPassword,
       sendResetPasswordConfirmation
 } from '../../utils/mailing/mailing.utils.js';
@@ -36,25 +41,22 @@ export class UsersController {
 
                   const result = await usersRepository.getAll();
 
-                  res.status(200).json({
-                        status: "success",
-                        message: `Usuarios encontrados correctamente`,
-                        payload: result
-                  });
+                  req.message = `Usuarios encontrados correctamente`;
+                  req.payload = result;
+                  req.HTTP_STATUS = HTTP_STATUS.OK;
+
+                  successResponse(req, res, () => {
+                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
+                  })
 
             } catch (error) {
 
-                  req.logger.warning({
-                        message: error.message,
-                        method: req.method,
-                        url: req.originalUrl,
-                        date: new Date().toLocaleDateString(),
-                  });
+                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
 
-                  res.status(HTTP_STATUS.SERVER_ERROR.status).json(errorResponse(HTTP_STATUS.SERVER_ERROR.message, error.message, {
-                        method: req.method,
-                        url: req.originalUrl
-                  }))
+                  next({
+                        message: error.message,
+                        status: HTTP_STATUS.SERVER_ERROR.status
+                  });
 
             };
 
@@ -69,6 +71,7 @@ export class UsersController {
                   const user = await usersRepository.getOne(payload);
 
                   if (!user && payload.email) {
+
                         req.logger.warning(`El usuario ${payload.email ? payload.email : payload.id}, no existe`);
                         res.status(400).json({
                               message: `El usuario ${payload.email ? payload.email : payload.id}, no existe`
@@ -80,53 +83,39 @@ export class UsersController {
 
                         const userToLogin = await usersRepository.loginOne(payload, user);
 
-                        const response = successResponse(userToLogin);
-                        if (response.payload.password) response.payload.password = undefined;
-
-                        const token = generateJWT(response.payload);
+                        const token = generateJWT(userToLogin);
 
                         res.cookie('auth', token, {
                               maxAge: 60 * 60 * 1000,
                         });
 
-                        res.status(200).json({
-                              message: `Usuario ${payload.email ? payload.email : payload.id}, encontrado correctamente`,
-                              response,
-                              token: token
-                        });
+                        req.message = `Usuario ${userToLogin.email}, encontrado correctamente`;
+                        req.payload = userToLogin;
+                        req.HTTP_STATUS = HTTP_STATUS.OK;
 
+                        successResponse(req, res, () => {
+                              res.status(HTTP_STATUS.OK.status).json(req.successResponse);
+                        })
 
                   } catch (error) {
 
-                        req.logger.warning({
-                              message: error.message,
-                              method: req.method,
-                              url: req.originalUrl,
-                              date: new Date().toLocaleDateString(),
-                        });
+                        logService(HTTP_STATUS.BAD_REQUEST, req, error);
 
-                        res.status(401).json({
-                              message: error.message
+                        next({
+                              message: error.message,
+                              status: HTTP_STATUS.BAD_REQUEST.status
                         });
 
                   };
 
             } catch (error) {
 
-                  let errorAt = error.stack ? error.stack.split('\n    at ')[10] : '';
+                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
 
-                  req.logger.error({
+                  next({
                         message: error.message,
-                        method: req.method,
-                        url: req.originalUrl,
-                        date: new Date().toLocaleDateString(),
-                        At: errorAt
+                        status: HTTP_STATUS.SERVER_ERROR.status
                   });
-
-                  res.status(HTTP_STATUS.SERVER_ERROR.status).json(errorResponse(HTTP_STATUS.SERVER_ERROR.message, error.message, {
-                        method: req.method,
-                        url: req.originalUrl
-                  }))
 
             };
 
@@ -152,59 +141,49 @@ export class UsersController {
 
                         const newUser = await usersRepository.addOne(payload);
 
-                        const response = successResponse(newUser);
+                        req.message = `Usuario ${newUser.email}, creado correctamente`;
+                        req.payload = newUser;
+                        req.HTTP_STATUS = HTTP_STATUS.CREATED;
 
-                        if (response.payload.password) response.payload.password = undefined;
-
-                        res.status(201).json({
-                              message: `Usuario ${payload.email}, creado correctamente`,
-                              response
-                        });
+                        successResponse(req, res, () => {
+                              res.status(HTTP_STATUS.CREATED.status).json(req.successResponse);
+                        })
 
                         try {
 
                               await sendWelcomeEmail(payload.email);
 
                         } catch (error) {
-                              req.logger.error('Error al enviar correo de bienvenida:', error);
+
+                              logService(HTTP_STATUS.SERVER_ERROR, req, error);
+
+                              next({
+                                    message: error.message,
+                                    status: HTTP_STATUS.SERVER_ERROR.status
+                              });
+
                         }
 
 
                   } catch (error) {
 
-                        let errorAt = error.stack ? error.stack.split('\n    at ')[1] : '';
+                        logService(HTTP_STATUS.SERVER_ERROR, req, error);
 
-                        req.logger.error({
+                        next({
                               message: error.message,
-                              method: req.method,
-                              url: req.originalUrl,
-                              date: new Date().toLocaleDateString(),
-                              At: errorAt
+                              status: HTTP_STATUS.SERVER_ERROR.status
                         });
-
-                        res.status(HTTP_STATUS.SERVER_ERROR.status).json(errorResponse(HTTP_STATUS.SERVER_ERROR.message, error.message, {
-                              method: req.method,
-                              url: req.originalUrl
-                        }))
 
                   };
 
             } catch (error) {
 
-                  let errorAt = error.stack ? error.stack.split('\n    at ')[1] : '';
+                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
 
-                  req.logger.error({
+                  next({
                         message: error.message,
-                        method: req.method,
-                        url: req.originalUrl,
-                        date: new Date().toLocaleDateString(),
-                        At: errorAt
+                        status: HTTP_STATUS.SERVER_ERROR.status
                   });
-
-                  res.status(HTTP_STATUS.SERVER_ERROR.status).json(errorResponse(HTTP_STATUS.SERVER_ERROR.message, error.message, {
-                        method: req.method,
-                        url: req.originalUrl
-                  }))
 
             };
 
@@ -214,8 +193,6 @@ export class UsersController {
 
             try {
 
-                  const token = req.cookies.auth;
-
                   const user = req.user;
 
                   if (!user) {
@@ -223,29 +200,26 @@ export class UsersController {
                         return;
                   }
 
+                  const result = await usersRepository.logout(user.email);
+
                   res.clearCookie('auth');
 
-                  res.status(200).json({
-                        status: 'success',
-                        message: `Usuario ${user.email}, desconectado correctamente`
-                  });
+                  req.message = `Usuario ${user.email}, desconectado correctamente`;
+                  req.payload = result;
+                  req.HTTP_STATUS = HTTP_STATUS.OK;
+
+                  successResponse(req, res, () => {
+                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
+                  })
 
             } catch (error) {
 
-                  let errorAt = error.stack ? error.stack.split('\n    at ')[1] : '';
+                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
 
-                  req.logger.error({
+                  next({
                         message: error.message,
-                        method: req.method,
-                        url: req.originalUrl,
-                        date: new Date().toLocaleDateString(),
-                        At: errorAt
+                        status: HTTP_STATUS.SERVER_ERROR.status
                   });
-
-                  res.status(HTTP_STATUS.SERVER_ERROR.status).json(errorResponse(HTTP_STATUS.SERVER_ERROR.message, error.message, {
-                        method: req.method,
-                        url: req.originalUrl
-                  }))
 
             };
 
@@ -260,30 +234,22 @@ export class UsersController {
 
                   const updatedUser = await usersRepository.uploadDocuments(_id, files);
 
-                  const response = successResponse(updatedUser);
+                  req.message = `Usuario ${updatedUser.email}, actualizado correctamente`;
+                  req.payload = updatedUser;
+                  req.HTTP_STATUS = HTTP_STATUS.OK;
 
-                  if (response.payload.password) response.payload.password = undefined;
-
-                  res.status(200).json({
-                        status: "success",
-                        message: `Documentos de usuario ${updatedUser.email}, actualizados correctamente`,
-                        payload: response.payload
-                  });
+                  successResponse(req, res, () => {
+                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
+                  })
 
             } catch (error) {
 
-                  req.logger.error({
-                        message: error.message,
-                        method: req.method,
-                        url: req.originalUrl,
-                        date: new Date().toLocaleDateString(),
-                        stack: error.stack
-                  });
+                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
 
-                  res.status(HTTP_STATUS.SERVER_ERROR.status).json(errorResponse(HTTP_STATUS.SERVER_ERROR.message, error.message, {
-                        method: req.method,
-                        url: req.originalUrl
-                  }))
+                  next({
+                        message: error.message,
+                        status: HTTP_STATUS.SERVER_ERROR.status
+                  });
 
             }
 
@@ -310,31 +276,22 @@ export class UsersController {
                         return;
                   }
 
-                  const response = successResponse(user);
+                  req.message = `Rol del usuario ${user.email}, actualizado correctamente`;
+                  req.payload = user;
+                  req.HTTP_STATUS = HTTP_STATUS.OK;
 
-                  if (response.payload.password) response.payload.password = undefined;
-
-                  res.status(200).json({
-                        status: "success",
-                        message: `Usuario ${payload}, actualizado correctamente`,
-                        payload: response.payload
-                  });
-
+                  successResponse(req, res, () => {
+                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
+                  })
 
             } catch (error) {
 
-                  req.logger.error({
-                        message: error.message,
-                        method: req.method,
-                        url: req.originalUrl,
-                        date: new Date().toLocaleDateString(),
-                        stack: error.stack
-                  });
+                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
 
-                  res.status(HTTP_STATUS.SERVER_ERROR.status).json(errorResponse(HTTP_STATUS.SERVER_ERROR.message, error.message, {
-                        method: req.method,
-                        url: req.originalUrl
-                  }))
+                  next({
+                        message: error.message,
+                        status: HTTP_STATUS.SERVER_ERROR.status
+                  });
 
             }
 
@@ -360,9 +317,12 @@ export class UsersController {
 
                   const updatedUser = await usersRepository.updateOne(exist, payload);
 
-                  const response = successResponse(updatedUser);
-
-                  const token = generateJWT(response.payload);
+                  const token = generateJWT({
+                        first_name: updatedUser.first_name,
+                        last_name: updatedUser.last_name,
+                        email: updatedUser.email,
+                        role: updatedUser.role,
+                  });
 
                   res.clearCookie('auth');
 
@@ -371,29 +331,23 @@ export class UsersController {
                         maxAge: 60 * 60 * 1000,
                   });
 
-                  if (response.payload.password) response.payload.password = undefined;
+                  req.message = `Usuario ${updatedUser.email}, actualizado correctamente`;
+                  req.payload = updatedUser;
+                  req.HTTP_STATUS = HTTP_STATUS.OK;
 
-                  res.status(200).json({
-                        message: `Usuario ${exist.email}, actualizado correctamente`,
-                        response
-                  });
+                  successResponse(req, res, () => {
+                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
+                  })
+
 
             } catch (error) {
 
-                  let errorAt = error.stack ? error.stack.split('\n    at ')[1] : '';
+                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
 
-                  req.logger.error({
+                  next({
                         message: error.message,
-                        method: req.method,
-                        url: req.originalUrl,
-                        date: new Date().toLocaleDateString(),
-                        At: errorAt
+                        status: HTTP_STATUS.SERVER_ERROR.status
                   });
-
-                  res.status(HTTP_STATUS.SERVER_ERROR.status).json(errorResponse(HTTP_STATUS.SERVER_ERROR.message, error.message, {
-                        method: req.method,
-                        url: req.originalUrl
-                  }))
 
             };
 
@@ -423,46 +377,84 @@ export class UsersController {
                         email: user.email
                   });
 
-                  const response = successResponse(deletedUser);
-
-                  if (response.payload.password) response.payload.password = undefined;
-
                   res.clearCookie('auth');
 
-                  res.status(200).json({
-                        message: `Usuario ${deletedUser.email}, eliminado correctamente`,
-                        response
-                  });
+                  req.message = `Usuario ${deletedUser.email}, eliminado correctamente`;
+                  req.payload = deletedUser;
+                  req.HTTP_STATUS = HTTP_STATUS.OK;
+
+                  successResponse(req, res, () => {
+                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
+                  })
 
                   try {
+
                         await sendGoodbyeEmail(payload.email);
+
                   } catch (error) {
-                        req.logger.error('Error al enviar correo de despedida:', error);
-                        res.status(500).json({
-                              status: 'error',
+
+                        logService(HTTP_STATUS.SERVER_ERROR, req, error);
+
+                        next({
                               message: error.message,
+                              status: HTTP_STATUS.SERVER_ERROR.status
                         });
+
                   }
 
 
             } catch (error) {
 
-                  let errorAt = error.stack ? error.stack.split('\n    at ')[1] : '';
+                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
 
-                  req.logger.error({
+                  next({
                         message: error.message,
-                        method: req.method,
-                        url: req.originalUrl,
-                        date: new Date().toLocaleDateString(),
-                        At: errorAt
+                        status: HTTP_STATUS.SERVER_ERROR.status
                   });
 
-                  res.status(HTTP_STATUS.SERVER_ERROR.status).json(errorResponse(HTTP_STATUS.SERVER_ERROR.message, error.message, {
-                        method: req.method,
-                        url: req.originalUrl
-                  }))
-
             };
+
+      };
+
+      static async deleteInactive(req, res, next) {
+
+            try {
+
+                  const deletedUsers = await usersRepository.deleteInactive();
+
+                  req.message = `Usuarios eliminados correctamente`;
+                  req.payload = deletedUsers.result.deletedCount + ' usuarios eliminados:' + ' ' + deletedUsers.users;
+                  req.HTTP_STATUS = HTTP_STATUS.OK;
+
+                  successResponse(req, res, () => {
+                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
+                  })
+
+                  try {
+
+                        await sendInactiveEmail(deletedUsers.users);
+
+                  } catch (error) {
+
+                        logService(HTTP_STATUS.SERVER_ERROR, req, error);
+
+                        next({
+                              message: error.message,
+                              status: HTTP_STATUS.SERVER_ERROR.status
+                        });
+
+                  }
+
+            } catch (error) {
+
+                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
+
+                  next({
+                        message: error.message,
+                        status: HTTP_STATUS.SERVER_ERROR.status
+                  });
+
+            }
 
       };
 
@@ -474,39 +466,34 @@ export class UsersController {
 
                   const admin = await usersRepository.loginAdmin(payload);
 
-                  const response = successResponse(admin);
-
-                  if (!response.payload) {
-                        req.logger.warning(`El usuario ${payload.email ? payload.email : payload.id}, no existe`);
-                        res.status(400).json({
-                              message: `El usuario ${payload.email ? payload.email : payload.id}, no existe`
-                        });
-                        return;
+                  if (admin) {
+                        admin.password = undefined;
                   }
 
-                  if (response.payload.password) response.payload.password = undefined;
-
-                  const token = generateJWT(response.payload);
+                  const token = generateJWT(admin);
 
                   res.cookie('auth', token, {
                         httpOnly: true,
                         maxAge: 60 * 60 * 1000,
                   });
 
-                  res.status(200).json({
-                        message: `Usuario ${payload.email ? payload.email : payload.id}, encontrado correctamente`,
-                        response,
-                        token: token
-                  });
+                  req.message = `Usuario admin encontrado correctamente`;
+                  req.payload = admin;
+                  req.HTTP_STATUS = HTTP_STATUS.OK;
+
+                  successResponse(req, res, () => {
+                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
+                  })
+
 
             } catch (error) {
 
-                  let errorAt = error.stack ? error.stack.split('\n    at ')[1] : '';
+                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
 
-                  res.status(HTTP_STATUS.SERVER_ERROR.status).json(errorResponse(HTTP_STATUS.SERVER_ERROR.message, error.message, {
-                        method: req.method,
-                        url: req.originalUrl
-                  }))
+                  next({
+                        message: error.message,
+                        status: HTTP_STATUS.SERVER_ERROR.status
+                  });
 
             };
 
@@ -528,21 +515,22 @@ export class UsersController {
                         return;
                   }
 
-                  res.status(200).json({
-                        message: `Correo electrónico de restablecimiento de contraseña enviado a ${updatedUser.email}`,
-                        endpoint: `${CONFIG.API_URL}/users/resetPassword?token=${updatedUser.password_reset_token}`
-                  });
+                  const response = successResponse(HTTP_STATUS.OK.message, `Correo electrónico de restablecimiento de contraseña enviado a ${updatedUser.email} con el endpoint : ${CONFIG.API_URL}/users/resetPassword?token=${updatedUser.password_reset_token}`, updatedUser);
+
+                  if (response.payload.password) response.payload.password = undefined;
+
+                  res.status(200).json(response);
 
                   await sendResetPassword(updatedUser.email, updatedUser.password_reset_token);
 
             } catch (error) {
 
-                  req.logger.error('Error al enviar correo de restablecimiento de contraseña:', error);
+                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
 
-                  res.status(HTTP_STATUS.SERVER_ERROR.status).json(errorResponse(HTTP_STATUS.SERVER_ERROR.message, error.message, {
-                        method: req.method,
-                        url: req.originalUrl
-                  }))
+                  next({
+                        message: error.message,
+                        status: HTTP_STATUS.SERVER_ERROR.status
+                  });
 
             }
 
@@ -563,16 +551,18 @@ export class UsersController {
 
                   await sendResetPasswordConfirmation(payload.email);
 
-                  res.status(200).json({
-                        message: `Contraseña de usuario ${updatedUser.email}, restablecida correctamente`
-                  });
+                  const response = successResponse(HTTP_STATUS.OK.message, `Contraseña de usuario ${updatedUser.email}, restablecida correctamente`);
+
+                  res.status(200).json(response);
 
             } catch (error) {
 
-                  res.status(HTTP_STATUS.SERVER_ERROR.status).json(errorResponse(HTTP_STATUS.SERVER_ERROR.message, error.message, {
-                        method: req.method,
-                        url: req.originalUrl
-                  }))
+                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
+
+                  next({
+                        message: error.message,
+                        status: HTTP_STATUS.SERVER_ERROR.status
+                  });
 
             }
 
@@ -583,7 +573,7 @@ export class UsersController {
 
                   const user = req.user;
 
-                  const response = successResponse(user);
+                  const response = successResponse(HTTP_STATUS.OK.message, `Usuario ${user.email}, encontrado correctamente`, user);
 
                   if (!response.payload) {
                         req.logger.warning(`El usuario ${user.email}, no existe`);
@@ -592,27 +582,16 @@ export class UsersController {
 
                   if (response.payload.password) response.payload.password = undefined;
 
-                  res.status(200).json({
-                        message: `Usuario ${user.email}, encontrado correctamente`,
-                        response
-                  });
+                  res.status(200).json(response);
 
             } catch (error) {
 
-                  let errorAt = error.stack ? error.stack.split('\n    at ')[1] : '';
+                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
 
-                  req.logger.error({
+                  next({
                         message: error.message,
-                        method: req.method,
-                        url: req.originalUrl,
-                        date: new Date().toLocaleDateString(),
-                        At: errorAt
+                        status: HTTP_STATUS.SERVER_ERROR.status
                   });
-
-                  res.status(HTTP_STATUS.SERVER_ERROR.status).json(errorResponse(HTTP_STATUS.SERVER_ERROR.message, error.message, {
-                        method: req.method,
-                        url: req.originalUrl
-                  }))
 
             }
 
@@ -630,20 +609,12 @@ export class UsersController {
 
             } catch (error) {
 
-                  let errorAt = error.stack ? error.stack.split('\n    at ')[1] : '';
+                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
 
-                  req.logger.error({
+                  next({
                         message: error.message,
-                        method: req.method,
-                        url: req.originalUrl,
-                        date: new Date().toLocaleDateString(),
-                        At: errorAt
+                        status: HTTP_STATUS.SERVER_ERROR.status
                   });
-
-                  res.status(HTTP_STATUS.SERVER_ERROR.status).json(errorResponse(HTTP_STATUS.SERVER_ERROR.message, error.message, {
-                        method: req.method,
-                        url: req.originalUrl
-                  }))
 
             };
 

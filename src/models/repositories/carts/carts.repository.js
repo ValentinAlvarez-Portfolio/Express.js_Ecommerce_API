@@ -16,7 +16,8 @@ const {
 } = getDTOS();
 
 const {
-    cartsMongoDAO
+    cartsMongoDAO,
+    usersMongoDAO
 } = getDAOS();
 
 export class CartsRepository {
@@ -35,65 +36,101 @@ export class CartsRepository {
 
     async getOne(payload) {
 
-        const cartPayload = new GetCartDTO(payload);
+        const dto = new GetCartDTO(payload);
 
-        if (cartPayload.errors) throw new Error(JSON.stringify(cartPayload.errors));
+        if (dto.errors) throw new Error(JSON.stringify(dto.errors));
+
+        const cartPayload = await dto.prepareData();
 
         const cart = await this.dao.getOne(cartPayload);
+
+        if (!cart) throw new Error('El carrito no existe');
 
         return cart;
 
     };
 
-    async saveOne(user) {
+    async saveOne(email) {
 
-        const dto = new SaveCartDTO(user);
+
+        const existingCart = await this.dao.getOne({
+            email: email
+        });
+
+        if (existingCart) throw new Error('El usuario ya tiene un carrito');
+
+        const dto = new SaveCartDTO(email);
 
         const preparedCart = await dto.prepareData();
 
-        return await this.dao.saveOne(preparedCart);
+        const result = await this.dao.saveOne(preparedCart);
+
+        if (!result) throw new Error('No se pudo guardar el carrito');
+
+        return result;
 
     };
 
-    async addProduct(code, productId, quantity, user) {
+    async addProduct(code, productId, quantity, email) {
 
-        if (!user) throw new Error('No tienes permisos para realizar esta acción');
+        const user = await usersMongoDAO.getOne({
+            email: email
+        });
 
         const dto = new AddProductDTO(code, productId, quantity, user);
 
         const preparedCart = await dto.prepareData();
 
-        return await this.dao.addProduct(code, preparedCart);
+        const result = await this.dao.addProduct(code, preparedCart);
+
+        if (!result) throw new Error('No se pudo agregar el producto');
+
+        return result;
 
     };
 
-    async deleteCart(payload) {
+    async deleteCart(payload, user) {
 
-        const payloadToDelete = new DeleteCartDTO(payload);
+        const payloadToDelete = new DeleteCartDTO(payload, user);
 
-        return await this.dao.deleteCart(payloadToDelete);
+        const preparedCart = await payloadToDelete.prepareData();
+
+        const result = await this.dao.deleteCart(preparedCart);
+
+        if (!result) throw new Error('No se pudo eliminar el carrito');
+
+        return result;
 
     }
 
-    // FALTA IMPLEMENTAR
-
     async deleteProduct(payload) {
 
-        const payloadToDelete = new DeleteProductFromCartDTO(payload);
+        const dto = new DeleteProductFromCartDTO(payload);
 
-        return await this.dao.deleteProduct(payloadToDelete);
+        const payloadToDelete = await dto.prepareData();
+
+        const result = await this.dao.addProduct(payload.code, payloadToDelete);
+
+        if (!result) throw new Error('No se pudo eliminar el producto');
+
+        return result;
 
     };
 
-    // FALTA IMPLEMENTAR
+    async purchaseCart(payload) {
 
-    async purchaseCart(code) {
-
-        const dto = new PurchaseCartDTO(code);
+        const dto = new PurchaseCartDTO(payload);
 
         const result = await dto.prepareData();
 
-        return result;
+        if (!result) throw new Error('No se pudo comprar el carrito');
+
+        const buyedCart = await this.dao.updateCart(result.cart);
+
+        return {
+            cart: buyedCart,
+            ticket: result.ticket
+        };
 
     };
 

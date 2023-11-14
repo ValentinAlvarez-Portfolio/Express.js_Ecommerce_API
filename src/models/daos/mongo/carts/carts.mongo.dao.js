@@ -27,6 +27,16 @@ export class CartsMongoDAO {
 
         }
 
+        if (payload.email) {
+
+            return await cartsModel.findOne({
+                user: {
+                    email: payload.email
+                }
+            }).lean();
+
+        }
+
     };
 
     async saveOne(cart) {
@@ -55,8 +65,6 @@ export class CartsMongoDAO {
 
     }
 
-    // FALTA IMPLEMENTAR
-
     async deleteProduct(payload) {
 
         return await cartsModel.findOneAndDelete({
@@ -65,6 +73,14 @@ export class CartsMongoDAO {
 
     };
 
-    // FALTA IMPLEMENTAR
+    async updateCart(payload) {
+
+        return await cartsModel.findOneAndUpdate({
+            code: payload.code
+        }, payload, {
+            new: true
+        });
+
+    }
 
 };

@@ -38,7 +38,11 @@ form.addEventListener('submit', (e) => {
 
                   } else {
 
-                        console.log(response);
+                        response.json().then(data => {
+
+                              alert(data.error);
+
+                        });
 
                   }
 
@@ -70,7 +74,11 @@ form.addEventListener('submit', (e) => {
 
                   } else {
 
-                        console.log(response);
+                        response.json().then(data => {
+
+                              alert(data.error);
+
+                        });
 
                   }
 

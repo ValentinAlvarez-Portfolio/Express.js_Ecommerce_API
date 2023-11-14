@@ -14,7 +14,7 @@ form.addEventListener('submit', (e) => {
 
       if (obj.email) {
 
-            fetch(`/api/users/update/${obj.email}`, {
+            fetch(`/api/users/update`, {
 
                   method: 'PUT',
                   body: JSON.stringify(obj),
@@ -25,6 +25,8 @@ form.addEventListener('submit', (e) => {
 
             }).then(result => {
 
+                  console.log(result)
+
                   if (result.status === 200) {
 
                         alert('Perfil actualizado correctamente');
@@ -33,7 +35,11 @@ form.addEventListener('submit', (e) => {
 
                   } else {
 
-                        alert('Error al actualizar el perfil');
+                        result.json().then(data => {
+
+                              alert(data.error);
+
+                        });
 
                   };
 
@@ -85,7 +91,11 @@ deleteForm.addEventListener('submit', (e) => {
 
             } else {
 
-                  alert('Error al eliminar el usuario');
+                  response.json().then(data => {
+
+                        alert(data.error);
+
+                  });
 
             }
 

@@ -5,9 +5,6 @@ import {
 } from "../../../utils/bcrypt/bcrypt.utils.js";
 
 import crypto from "crypto";
-import {
-      th
-} from "@faker-js/faker";
 
 const validEmail = (email) => {
 
@@ -127,6 +124,10 @@ export class LoadUserDTO {
                   this.last_name = user.last_name;
                   this.phone = user.phone;
                   this.role = user.role ? user.role.toUpperCase() : 'USER';
+                  this.last_connection = {
+                        last_login: user.last_connection.last_login ? user.last_connection.last_login : '',
+                        last_logout: user.last_connection.last_logout ? user.last_connection.last_logout : '',
+                  }
 
 
             } catch (error) {
@@ -400,6 +401,44 @@ export class DeleteUserDTO {
       }
 
 };
+
+export class DeleteInactiveUsersDTO {
+
+      constructor(payload) {
+
+            try {
+
+                  if (!payload) throw new ValidationError(["No se han encontrado usuarios"]);
+
+                  const now = new Date();
+
+                  const limitTime = 2 * 24 * 60 * 60 * 1000;
+
+                  const inactiveUsers = payload.filter(user => {
+
+                        const lastActivity = new Date(Math.max(new Date(user.last_connection.last_login), new Date(user.last_connection.last_logout)));
+
+                        const diff = now - lastActivity;
+
+                        return diff > limitTime;
+
+                  });
+
+                  const usersEmailsToDelete = inactiveUsers.map(user => user.email);
+
+                  this.usersEmailsToDelete = usersEmailsToDelete;
+
+            } catch (error) {
+
+                  if (error instanceof ValidationError) return {
+                        errors: error.errors
+                  };
+
+            };
+
+      }
+
+}
 
 export class LoadAdminDTO {
 

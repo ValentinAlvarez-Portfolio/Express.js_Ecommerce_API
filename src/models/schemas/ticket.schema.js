@@ -23,7 +23,12 @@ const ticketSchema = mongoose.Schema({
     purchaser: {
         type: String,
         required: true,
-    }
+    },
+
+    products: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "products",
+    }],
 
 });
 

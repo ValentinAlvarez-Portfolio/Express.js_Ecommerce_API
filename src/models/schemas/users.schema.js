@@ -69,7 +69,14 @@ const usersSchema = new mongoose.Schema({
       }],
 
       last_connection: {
-            type: Date
+            last_login: {
+                  type: Date,
+                  default: Date.now,
+            },
+            last_logout: {
+                  type: Date,
+                  default: null,
+            },
       },
 
 });
