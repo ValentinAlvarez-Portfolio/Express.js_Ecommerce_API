@@ -5,8 +5,9 @@ import {
     ProductsController
 } from "../../controllers/products/products.controller.js";
 
+
 import {
-    authPremium as premiumMiddleware
+    authPremium as premiumMiddleware,
 } from "../../middlewares/auth.middleware.js";
 
 const productsRouter = Router();
