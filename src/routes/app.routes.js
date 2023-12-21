@@ -40,7 +40,7 @@ router.use(loggerMiddelware);
 router.use('/', viewsRouter);
 router.use('/api/loggerTest', loggerRouter);
 router.use('/api/users', usersRouter);
-router.use('/api/products', authMiddleware, productsRouter);
+router.use('/api/products', productsRouter);
 router.use('/api/carts', authMiddleware, cartsRouter);
 router.use('/api/mocks', adminMiddleware, usersMocksRouter, productsMocksRouter, cartsMocksRouter);
 router.use('/api/docs', swaggerUiExpress.serve, swaggerUiExpress.setup(spec));

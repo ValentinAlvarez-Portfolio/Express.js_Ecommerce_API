@@ -87,9 +87,6 @@ export class UsersController {
 
                         res.cookie('auth', token, {
                               maxAge: 60 * 60 * 1000,
-                              httpOnly: false,
-                              secure: false,
-                              sameSite: 'none'
                         });
 
                         req.message = `Usuario ${userToLogin.email}, encontrado correctamente`;
