@@ -10,6 +10,7 @@ import __dirname from './__dirname.js';
 import {
       MongoManager
 } from './models/manager/mongo/mongo.manager.js';
+import cors from 'cors';
 
 import passport from 'passport';
 import initPassport from './config/passport/passport.config.js';
@@ -28,6 +29,10 @@ const httpServer = app.listen(PORT, () => {
 
 export const io = new Server(httpServer);
 
+app.use(cors({
+      origin: 'http://localhost:5173/',
+      credentials: true
+}));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({
