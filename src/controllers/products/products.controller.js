@@ -69,10 +69,10 @@ export class ProductsController {
 
         try {
             const {
-                id
+                _id
             } = req.params;
 
-            const product = await productsRepository.getById(id);
+            const product = await productsRepository.getById(_id);
 
             req.message = `Producto ${product.payload.title}, encontrado correctamente en la base de datos`;
             req.payload = product;

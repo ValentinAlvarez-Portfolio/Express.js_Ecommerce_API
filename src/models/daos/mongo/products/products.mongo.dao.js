@@ -81,10 +81,10 @@ export class ProductsMongoDAO {
 
     };
 
-    async getById(id) {
+    async getById(_id) {
 
         return await productsModel.findOne({
-            id
+            _id
         }).lean();
 
     }
