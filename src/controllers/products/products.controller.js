@@ -33,7 +33,7 @@ export class ProductsController {
         try {
 
             let {
-                limit = 10, page = 1, sort, query
+                limit = 16, page = 1, sort, query
             } = req.query;
 
             limit = parseInt(limit);

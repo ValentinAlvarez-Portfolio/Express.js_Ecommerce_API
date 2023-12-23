@@ -12,7 +12,7 @@ export class ProductsMongoDAO {
     };
 
     async getAll({
-        limit = 10,
+        limit = 16,
         page = 1,
         sort,
         query
@@ -30,21 +30,28 @@ export class ProductsMongoDAO {
             if (query) {
 
                 searchQuery.$or = [{
-                    title: {
-                        $regex: query,
-                        $options: "i"
+                        title: {
+                            $regex: query,
+                            $options: "i"
+                        }
+                    }, {
+                        category: {
+                            $regex: query,
+                            $options: "i"
+                        }
+                    }, {
+                        section: {
+                            $regex: query,
+                            $options: "i"
+                        }
+                    },
+                    {
+                        code: {
+                            $regex: query,
+                            $options: "i"
+                        }
                     }
-                }, {
-                    category: {
-                        $regex: query,
-                        $options: "i"
-                    }
-                }, {
-                    code: {
-                        $regex: query,
-                        $options: "i"
-                    }
-                }];
+                ];
 
             }
 
