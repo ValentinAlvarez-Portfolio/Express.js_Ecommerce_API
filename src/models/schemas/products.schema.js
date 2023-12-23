@@ -41,6 +41,15 @@ const productsSchema = mongoose.Schema({
             required: true,
       },
 
+      section: {
+            type: String,
+            required: true,
+      },
+
+      color: {
+            type: String,
+      },
+
       thumbnails: {
             type: Array,
             required: false,

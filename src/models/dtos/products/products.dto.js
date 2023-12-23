@@ -60,6 +60,8 @@ export class SaveProductDTO {
             status: this.payload.status,
             stock: this.payload.stock,
             category: this.payload.category,
+            section: this.payload.section,
+            color: this.payload.color,
             thumbnails: this.payload.thumbnails,
             id: this.payload.id,
             owner: user._id,

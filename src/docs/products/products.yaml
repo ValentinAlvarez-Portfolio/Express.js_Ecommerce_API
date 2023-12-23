@@ -72,6 +72,10 @@ paths:
                   type: integer
                 category:
                   type: string
+                section:
+                  type: string
+                color:
+                  type: string
                 thumbnails:
                   type: array
                   items:
@@ -142,6 +146,10 @@ paths:
                 stock:
                   type: integer
                 category:
+                  type: string
+                section:
+                  type: string
+                color:
                   type: string
                 thumbnails:
                   type: array
