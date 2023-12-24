@@ -30,7 +30,7 @@ const httpServer = app.listen(PORT, () => {
 export const io = new Server(httpServer);
 
 app.use(cors({
-      origin: 'http://localhost:5173',
+      origin: 'https://valentinalvarez98.github.io/PreEntrega2React/',
       credentials: true,
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
       methods: ['GET', 'POST', 'PUT', 'DELETE']
