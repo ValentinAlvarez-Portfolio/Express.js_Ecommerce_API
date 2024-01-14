@@ -72,10 +72,13 @@ export class UsersController {
 
                   if (!user && payload.email) {
 
-                        req.logger.warning(`El usuario ${payload.email ? payload.email : payload.id}, no existe`);
-                        res.status(400).json({
-                              message: `El usuario ${payload.email ? payload.email : payload.id}, no existe`
+                        logService(HTTP_STATUS.BAD_REQUEST, req, `El usuario ${payload.email ? payload.email : payload.id}, no existe`);
+
+                        next({
+                              message: `El usuario ${payload.email ? payload.email : payload.id}, no existe`,
+                              status: HTTP_STATUS.BAD_REQUEST.status
                         });
+
                         return;
                   }
 
@@ -132,10 +135,13 @@ export class UsersController {
                         const exist = await usersRepository.getOne(payload.email);
 
                         if (exist) {
-                              req.logger.warning(`El usuario ${payload.email}, ya existe`);
-                              res.status(400).json({
-                                    message: `El usuario ${payload.email}, ya existe`
+                              logService(HTTP_STATUS.BAD_REQUEST, req, `El usuario ${payload.email}, ya existe`);
+
+                              next({
+                                    message: `El usuario ${payload.email}, ya existe`,
+                                    status: HTTP_STATUS.BAD_REQUEST.status
                               });
+
                               return;
                         }
 
@@ -269,10 +275,14 @@ export class UsersController {
                   const user = await usersRepository.updateRole(payload);
 
                   if (!user) {
-                        req.logger.warning(`El usuario ${payload}, no existe`);
-                        res.status(400).json({
-                              message: `El usuario ${payload}, no existe`
+
+                        logService(HTTP_STATUS.BAD_REQUEST, req, `El usuario ${payload}, no existe`);
+
+                        next({
+                              message: `El usuario ${payload}, no existe`,
+                              status: HTTP_STATUS.BAD_REQUEST.status
                         });
+
                         return;
                   }
 
@@ -308,11 +318,16 @@ export class UsersController {
                   const exist = await usersRepository.getOne(email);
 
                   if (!exist) {
-                        req.logger.warning(`El usuario ${email}, no existe`);
-                        res.status(400).json({
-                              message: `El usuario ${email}, no existe`
+
+                        logService(HTTP_STATUS.BAD_REQUEST, req, `El usuario ${email}, no existe`);
+
+                        next({
+                              message: `El usuario ${email}, no existe`,
+                              status: HTTP_STATUS.BAD_REQUEST.status
                         });
+
                         return;
+
                   }
 
                   const updatedUser = await usersRepository.updateOne(exist, payload);
@@ -366,10 +381,13 @@ export class UsersController {
                   const user = await usersRepository.getOne(email);
 
                   if (!user) {
-                        req.logger.warning(`El usuario ${email}, no existe`);
-                        res.status(400).json({
-                              message: `El usuario ${email}, no existe`
+                        logService(HTTP_STATUS.BAD_REQUEST, req, `El usuario ${email}, no existe`);
+
+                        next({
+                              message: `El usuario ${email}, no existe`,
+                              status: HTTP_STATUS.BAD_REQUEST.status
                         });
+
                         return;
                   }
 
@@ -508,11 +526,16 @@ export class UsersController {
                   const updatedUser = await usersRepository.createResetToken(payload);
 
                   if (!updatedUser) {
-                        req.logger.warning(`El usuario ${payload.email}, no existe`);
-                        res.status(400).json({
-                              message: `El usuario ${payload.email}, no existe`
+
+                        logService(HTTP_STATUS.BAD_REQUEST, req, `El usuario ${payload.email}, no existe`);
+
+                        next({
+                              message: `El usuario ${payload.email}, no existe`,
+                              status: HTTP_STATUS.BAD_REQUEST.status
                         });
+
                         return;
+
                   }
 
                   req.message = `Correo electrónico de restablecimiento de contraseña enviado a ${updatedUser.email} con el endpoint : ${CONFIG.API_URL}/users/resetPassword?token=${updatedUser.password_reset_token}`;
