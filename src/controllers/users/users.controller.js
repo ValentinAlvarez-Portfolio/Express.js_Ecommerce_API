@@ -72,10 +72,12 @@ export class UsersController {
 
                   if (!user && payload.email) {
 
-                        logService(HTTP_STATUS.BAD_REQUEST, req, `El usuario ${payload.email ? payload.email : payload.id}, no existe`);
+                        const errorMessage = [`El usuario ${payload.email ? payload.email : payload.id}, no existe`]
+
+                        logService(HTTP_STATUS.BAD_REQUEST, req, errorMessage);
 
                         next({
-                              message: `El usuario ${payload.email ? payload.email : payload.id}, no existe`,
+                              message: errorMessage,
                               status: HTTP_STATUS.BAD_REQUEST.status
                         });
 
@@ -279,10 +281,12 @@ export class UsersController {
 
                   if (!user) {
 
-                        logService(HTTP_STATUS.BAD_REQUEST, req, `El usuario ${payload}, no existe`);
+                        const errorMessage = [`El usuario ${payload}, no existe`]
+
+                        logService(HTTP_STATUS.BAD_REQUEST, req, errorMessage);
 
                         next({
-                              message: `El usuario ${payload}, no existe`,
+                              message: errorMessage,
                               status: HTTP_STATUS.BAD_REQUEST.status
                         });
 
@@ -322,10 +326,12 @@ export class UsersController {
 
                   if (!exist) {
 
-                        logService(HTTP_STATUS.BAD_REQUEST, req, `El usuario ${email}, no existe`);
+                        const errorMessage = [`El usuario ${email}, no existe`]
+
+                        logService(HTTP_STATUS.BAD_REQUEST, req, errorMessage);
 
                         next({
-                              message: `El usuario ${email}, no existe`,
+                              message: errorMessage,
                               status: HTTP_STATUS.BAD_REQUEST.status
                         });
 
@@ -384,10 +390,13 @@ export class UsersController {
                   const user = await usersRepository.getOne(email);
 
                   if (!user) {
-                        logService(HTTP_STATUS.BAD_REQUEST, req, `El usuario ${email}, no existe`);
+
+                        const errorMessage = [`El usuario ${email}, no existe`]
+
+                        logService(HTTP_STATUS.BAD_REQUEST, req, errorMessage);
 
                         next({
-                              message: `El usuario ${email}, no existe`,
+                              message: errorMessage,
                               status: HTTP_STATUS.BAD_REQUEST.status
                         });
 
@@ -530,10 +539,12 @@ export class UsersController {
 
                   if (!updatedUser) {
 
-                        logService(HTTP_STATUS.BAD_REQUEST, req, [`El usuario ${payload.email}, no existe`]);
+                        const errorMessage = [`El usuario ${payload.email}, no existe`]
+
+                        logService(HTTP_STATUS.BAD_REQUEST, req, errorMessage);
 
                         next({
-                              message: `El usuario ${payload.email}, no existe`,
+                              message: errorMessage,
                               status: HTTP_STATUS.BAD_REQUEST.status
                         });
 
