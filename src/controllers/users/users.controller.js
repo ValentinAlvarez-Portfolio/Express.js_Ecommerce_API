@@ -318,7 +318,7 @@ export class UsersController {
 
             try {
 
-                  const email = req.user.email;
+                  const email = req.body.email ? req.body.email : req.user.email;
 
                   const payload = req.body;
 

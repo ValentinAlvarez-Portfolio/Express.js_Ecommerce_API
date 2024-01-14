@@ -31,7 +31,7 @@ usersRouter.post('/logout', authMiddleware, UsersController.logout);
 usersRouter.post('/:id/documents', upload.array('documents'), UsersController.uploadDocuments);
 usersRouter.put('/premium', adminMiddleware, UsersController.updateRole);
 usersRouter.put('/premium/:id', adminMiddleware, UsersController.updateRole);
-usersRouter.put('/update', authMiddleware, UsersController.updateOne);
+usersRouter.put('/update', UsersController.updateOne);
 usersRouter.delete('/delete', authMiddleware, UsersController.deleteOne);
 usersRouter.delete('/deleteInactive', adminMiddleware, UsersController.deleteInactive);
 usersRouter.post('/sendResetPassword', UsersController.resetPasswordRequest);
