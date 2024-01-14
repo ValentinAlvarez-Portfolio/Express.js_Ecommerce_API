@@ -32,11 +32,13 @@ export const prepareUsersSuccessResponse = (req, res, next) => {
             req.successResponse.payload.password ? delete req.successResponse.payload.password : null;
             req.successResponse.payload.token ? delete req.successResponse.payload.token : null;
             req.successResponse.payload._id ? delete req.successResponse.payload._id : null;
-            req.successResponse.payload.age ? delete req.successResponse.payload.age : null;
-            req.successResponse.payload.last_name ? delete req.successResponse.payload.last_name : null;
+            /* 
+                        req.successResponse.payload.age ? delete req.successResponse.payload.age : null;
+                        req.successResponse.payload.last_name ? delete req.successResponse.payload.last_name : null; */
             req.successResponse.payload.date_created ? delete req.successResponse.payload.date_created : null;
             req.successResponse.payload.__v ? delete req.successResponse.payload.__v : null;
-            req.successResponse.payload.phone ? delete req.successResponse.payload.phone : null;
+            /* 
+                        req.successResponse.payload.phone ? delete req.successResponse.payload.phone : null; */
             req.successResponse.payload.password_reset_token ? delete req.successResponse.payload.password_reset_token : null;
             req.successResponse.payload.password_reset_expires ? delete req.successResponse.payload.password_reset_expires : null;
 
