@@ -36,5 +36,6 @@ usersRouter.delete('/delete', authMiddleware, UsersController.deleteOne);
 usersRouter.delete('/deleteInactive', adminMiddleware, UsersController.deleteInactive);
 usersRouter.post('/sendResetPassword', UsersController.resetPasswordRequest);
 usersRouter.post('/resetPassword/:token', UsersController.resetPassword);
+usersRouter.get('/session', UsersController.chechSession);
 
 export default usersRouter;

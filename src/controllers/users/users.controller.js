@@ -241,6 +241,50 @@ export class UsersController {
 
       };
 
+      static async chechSession(req, res, next) {
+
+            try {
+
+                  const user = req.user;
+
+                  if (!user) {
+                        const errorMessage = [`El usuario ${user.email}, no está conectado`];
+
+                        logService(HTTP_STATUS.UNAUTHORIZED, req, errorMessage);
+
+                        next({
+                              message: errorMessage,
+                              status: HTTP_STATUS.UNAUTHORIZED.status
+                        });
+
+                        return;
+
+                  }
+
+                  req.message = `Usuario ${user.email}, conectado correctamente`;
+                  req.payload = {
+                        isAuthenticaded: true,
+                  }
+                  req.HTTP_STATUS = HTTP_STATUS.OK;
+
+                  successResponse(req, res, () => {
+                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
+                  })
+
+
+            } catch (error) {
+
+                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
+
+                  next({
+                        message: error.message,
+                        status: HTTP_STATUS.SERVER_ERROR.status
+                  });
+
+            }
+
+      };
+
       static async updateOne(req, res, next) {
 
             try {
@@ -280,8 +324,10 @@ export class UsersController {
                   res.setHeader('Authorization', `Bearer ${token}`);
 
                   res.cookie('auth', token, {
-                        httpOnly: true,
                         maxAge: 60 * 60 * 1000,
+                        httpOnly: true,
+                        secure: true,
+                        sameSite: 'none',
                   });
 
                   req.message = `Usuario ${updatedUser.email}, actualizado correctamente`;
