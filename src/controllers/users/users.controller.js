@@ -96,7 +96,7 @@ export class UsersController {
                               maxAge: 60 * 60 * 1000,
                               httpOnly: true,
                               secure: false,
-                              sameSite: 'none',
+                              sameSite: 'lax',
                         });
 
                         req.message = `Usuario ${userToLogin.email}, encontrado correctamente`;
