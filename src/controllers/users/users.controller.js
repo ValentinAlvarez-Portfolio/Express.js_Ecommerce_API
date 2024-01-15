@@ -90,8 +90,13 @@ export class UsersController {
 
                         const token = generateJWT(userToLogin);
 
+                        res.setHeader('Authorization', `Bearer ${token}`);
+
                         res.cookie('auth', token, {
                               maxAge: 60 * 60 * 1000,
+                              httpOnly: true,
+                              secure: true,
+                              sameSite: 'none',
                         });
 
                         req.message = `Usuario ${userToLogin.email}, encontrado correctamente`;
@@ -236,6 +241,71 @@ export class UsersController {
 
       };
 
+      static async updateOne(req, res, next) {
+
+            try {
+
+                  const email = req.body.email ? req.body.email : req.user.email;
+
+                  const payload = req.body;
+
+                  const exist = await usersRepository.getOne(email);
+
+                  if (!exist) {
+
+                        const errorMessage = [`El usuario ${email}, no existe`]
+
+                        logService(HTTP_STATUS.BAD_REQUEST, req, errorMessage);
+
+                        next({
+                              message: errorMessage,
+                              status: HTTP_STATUS.BAD_REQUEST.status
+                        });
+
+                        return;
+
+                  }
+
+                  const updatedUser = await usersRepository.updateOne(exist, payload);
+
+                  const token = generateJWT({
+                        first_name: updatedUser.first_name,
+                        last_name: updatedUser.last_name,
+                        email: updatedUser.email,
+                        role: updatedUser.role,
+                  });
+
+                  res.clearCookie('auth');
+
+                  res.setHeader('Authorization', `Bearer ${token}`);
+
+                  res.cookie('auth', token, {
+                        httpOnly: true,
+                        maxAge: 60 * 60 * 1000,
+                  });
+
+                  req.message = `Usuario ${updatedUser.email}, actualizado correctamente`;
+                  req.payload = updatedUser;
+                  req.HTTP_STATUS = HTTP_STATUS.OK;
+
+                  successResponse(req, res, () => {
+                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
+                  })
+
+
+            } catch (error) {
+
+                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
+
+                  next({
+                        message: error.message,
+                        status: HTTP_STATUS.SERVER_ERROR.status
+                  });
+
+            };
+
+      };
+
       static async uploadDocuments(req, res, next) {
 
             try {
@@ -314,68 +384,7 @@ export class UsersController {
 
       }
 
-      static async updateOne(req, res, next) {
 
-            try {
-
-                  const email = req.body.email ? req.body.email : req.user.email;
-
-                  const payload = req.body;
-
-                  const exist = await usersRepository.getOne(email);
-
-                  if (!exist) {
-
-                        const errorMessage = [`El usuario ${email}, no existe`]
-
-                        logService(HTTP_STATUS.BAD_REQUEST, req, errorMessage);
-
-                        next({
-                              message: errorMessage,
-                              status: HTTP_STATUS.BAD_REQUEST.status
-                        });
-
-                        return;
-
-                  }
-
-                  const updatedUser = await usersRepository.updateOne(exist, payload);
-
-                  const token = generateJWT({
-                        first_name: updatedUser.first_name,
-                        last_name: updatedUser.last_name,
-                        email: updatedUser.email,
-                        role: updatedUser.role,
-                  });
-
-                  res.clearCookie('auth');
-
-                  res.cookie('auth', token, {
-                        httpOnly: true,
-                        maxAge: 60 * 60 * 1000,
-                  });
-
-                  req.message = `Usuario ${updatedUser.email}, actualizado correctamente`;
-                  req.payload = updatedUser;
-                  req.HTTP_STATUS = HTTP_STATUS.OK;
-
-                  successResponse(req, res, () => {
-                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
-                  })
-
-
-            } catch (error) {
-
-                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
-
-                  next({
-                        message: error.message,
-                        status: HTTP_STATUS.SERVER_ERROR.status
-                  });
-
-            };
-
-      };
 
       static async deleteOne(req, res, next) {
 

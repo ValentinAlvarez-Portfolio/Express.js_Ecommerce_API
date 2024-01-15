@@ -8,7 +8,8 @@ import {
 
 import {
       authFromCookie as authMiddleware,
-      authAdmin as adminMiddleware
+      authAdmin as adminMiddleware,
+      authFromHeader
 } from "../../middlewares/auth.middleware.js";
 
 import passport from "passport";
@@ -24,7 +25,7 @@ usersRouter.get('/githubcallback', passport.authenticate('github', {
       failureRedirect: '/login'
 }), UsersController.loginGithubCallback);
 usersRouter.get('/', adminMiddleware, UsersController.getAll);
-usersRouter.post('/login', UsersController.loginOne);
+usersRouter.post('/login', authFromHeader, UsersController.loginOne);
 usersRouter.post('/login/admin', UsersController.loginAdmin);
 usersRouter.post('/register', UsersController.addOne);
 usersRouter.post('/logout', authMiddleware, UsersController.logout);
