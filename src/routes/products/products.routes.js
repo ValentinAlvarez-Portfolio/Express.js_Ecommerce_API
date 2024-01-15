@@ -8,11 +8,12 @@ import {
 
 import {
     authPremium as premiumMiddleware,
+    authFromCookie as authMiddleware,
 } from "../../middlewares/auth.middleware.js";
 
 const productsRouter = Router();
 
-productsRouter.get('/', ProductsController.getAll);
+productsRouter.get('/', authMiddleware, ProductsController.getAll);
 productsRouter.get('/:_id', ProductsController.getById);
 productsRouter.post('/', premiumMiddleware, ProductsController.addOne);
 productsRouter.put('/:id', premiumMiddleware, ProductsController.updateOne);
