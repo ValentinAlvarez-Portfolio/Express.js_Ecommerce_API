@@ -100,7 +100,10 @@ export class UsersController {
                         });
 
                         req.message = `Usuario ${userToLogin.email}, encontrado correctamente`;
-                        req.payload = userToLogin;
+                        req.payload = {
+                              ...userToLogin,
+                              token
+                        };
                         req.HTTP_STATUS = HTTP_STATUS.OK;
 
                         successResponse(req, res, () => {
@@ -331,7 +334,10 @@ export class UsersController {
                   });
 
                   req.message = `Usuario ${updatedUser.email}, actualizado correctamente`;
-                  req.payload = updatedUser;
+                  req.payload = {
+                        ...updatedUser,
+                        token
+                  };
                   req.HTTP_STATUS = HTTP_STATUS.OK;
 
                   successResponse(req, res, () => {
