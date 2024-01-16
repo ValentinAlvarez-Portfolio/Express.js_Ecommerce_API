@@ -248,10 +248,14 @@ export class UsersController {
 
             try {
 
-                  const user = req.user;
+                  const userToken = req.cookie.auth;
+
+                  const userPayload = verifyJWT(userToken);
+
+                  const email = userPayload.payload.email;
 
                   if (!user) {
-                        const errorMessage = [`El usuario ${user.email}, no está conectado`];
+                        const errorMessage = [`El usuario ${email}, no está conectado`];
 
                         logService(HTTP_STATUS.UNAUTHORIZED, req, errorMessage);
 
@@ -264,7 +268,7 @@ export class UsersController {
 
                   }
 
-                  req.message = `Usuario ${user.email}, conectado correctamente`;
+                  req.message = `Usuario ${email}, conectado correctamente`;
                   req.payload = {
                         isAuthenticaded: true,
                   }
