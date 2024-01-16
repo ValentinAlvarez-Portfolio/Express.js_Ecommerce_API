@@ -248,13 +248,17 @@ export class UsersController {
 
             try {
 
-                  const userToken = req.cookie.auth;
+                  const userToken = req.cookies.auth;
 
                   const userPayload = verifyJWT(userToken);
 
+                  console.log(userPayload)
+
                   const email = userPayload.payload.email;
 
-                  if (!user) {
+                  console.log(email)
+
+                  if (!userPayload) {
                         const errorMessage = [`El usuario ${email}, no está conectado`];
 
                         logService(HTTP_STATUS.UNAUTHORIZED, req, errorMessage);
