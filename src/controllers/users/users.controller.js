@@ -213,18 +213,17 @@ export class UsersController {
 
             try {
 
-                  const user = req.user;
+                  const userToken = req.cookies.auth;
 
-                  if (!user) {
-                        req.logger.warning(`El usuario ${user.email}, no existe`);
-                        return;
-                  }
+                  const userPayload = verifyJWT(userToken);
 
-                  const result = await usersRepository.logout(user.email);
+                  const email = userPayload.payload.email;
+
+                  const result = await usersRepository.logout(email);
 
                   res.clearCookie('auth');
 
-                  req.message = `Usuario ${user.email}, desconectado correctamente`;
+                  req.message = `Usuario ${email}, desconectado correctamente`;
                   req.payload = result;
                   req.HTTP_STATUS = HTTP_STATUS.OK;
 
@@ -253,11 +252,7 @@ export class UsersController {
 
                   const userPayload = verifyJWT(userToken);
 
-                  console.log(userPayload)
-
                   const email = userPayload.payload.email;
-
-                  console.log(email)
 
                   if (!userPayload) {
                         const errorMessage = [`El usuario ${email}, no está conectado`];
