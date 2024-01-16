@@ -326,7 +326,11 @@ export class UsersController {
                         role: updatedUser.role,
                   });
 
-                  res.clearCookie('auth');
+                  res.clearCookie('auth', {
+                        httpOnly: true,
+                        secure: true,
+                        sameSite: 'none',
+                  });
 
                   res.setHeader('Authorization', `Bearer ${token}`);
 
