@@ -221,7 +221,11 @@ export class UsersController {
 
                   const result = await usersRepository.logout(email);
 
-                  res.clearCookie('auth');
+                  res.clearCookie('auth', {
+                        httpOnly: true,
+                        secure: true,
+                        sameSite: 'none',
+                  });
 
                   req.message = `Usuario ${email}, desconectado correctamente`;
                   req.payload = result;
