@@ -27,7 +27,7 @@ usersRouter.get('/', adminMiddleware, UsersController.getAll);
 usersRouter.post('/login', UsersController.loginOne);
 usersRouter.post('/login/admin', UsersController.loginAdmin);
 usersRouter.post('/register', UsersController.addOne);
-usersRouter.post('/logout', authMiddleware, UsersController.logout);
+usersRouter.post('/logout', UsersController.logout);
 usersRouter.post('/:id/documents', upload.array('documents'), UsersController.uploadDocuments);
 usersRouter.put('/premium', adminMiddleware, UsersController.updateRole);
 usersRouter.put('/premium/:id', adminMiddleware, UsersController.updateRole);
