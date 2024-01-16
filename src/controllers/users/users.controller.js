@@ -12,6 +12,7 @@ import {
 
 import {
       generateJWT,
+      verifyJWT
 } from '../../utils/JWT/jwt.utils.js';
 
 import CONFIG from '../../config/environment/config.js';
