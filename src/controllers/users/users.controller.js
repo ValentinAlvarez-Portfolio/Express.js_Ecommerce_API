@@ -323,12 +323,7 @@ export class UsersController {
 
                   const updatedUser = await usersRepository.updateOne(exist, payload);
 
-                  const token = generateJWT({
-                        first_name: updatedUser.first_name,
-                        last_name: updatedUser.last_name,
-                        email: updatedUser.email,
-                        role: updatedUser.role,
-                  });
+                  const token = generateJWT(updatedUser);
 
                   res.clearCookie('auth', {
                         httpOnly: true,
