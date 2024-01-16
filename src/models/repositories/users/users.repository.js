@@ -205,7 +205,13 @@ export class UsersRepository {
 
             const result = await this.dao.updateOne(updatedPayload);
 
-            return result ? updatedPayload : result;
+            return result ? {
+                  ...updatedPayload,
+                  password: undefined,
+                  documents: undefined,
+                  password_reset_token: undefined,
+                  password_reset_expires: undefined
+            } : result;
 
       };
 
