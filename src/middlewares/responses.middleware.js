@@ -30,9 +30,10 @@ export const prepareUsersSuccessResponse = (req, res, next) => {
 
       if (req.successResponse.payload) {
             req.successResponse.payload.password ? delete req.successResponse.payload.password : null;
+            /* 
             req.successResponse.payload.token ? delete req.successResponse.payload.token : null;
             req.successResponse.payload._id ? delete req.successResponse.payload._id : null;
-            /* 
+           
                         req.successResponse.payload.age ? delete req.successResponse.payload.age : null;
                         req.successResponse.payload.last_name ? delete req.successResponse.payload.last_name : null; */
             req.successResponse.payload.date_created ? delete req.successResponse.payload.date_created : null;
