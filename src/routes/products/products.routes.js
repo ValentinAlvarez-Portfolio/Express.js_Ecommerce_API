@@ -13,7 +13,7 @@ import {
 
 const productsRouter = Router();
 
-productsRouter.get('/', authMiddleware, ProductsController.getAll);
+productsRouter.get('/', ProductsController.getAll);
 productsRouter.get('/:_id', ProductsController.getById);
 productsRouter.post('/', premiumMiddleware, ProductsController.addOne);
 productsRouter.put('/:id', premiumMiddleware, ProductsController.updateOne);
