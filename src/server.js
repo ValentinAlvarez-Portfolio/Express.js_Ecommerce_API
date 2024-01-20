@@ -29,7 +29,7 @@ const httpServer = app.listen(PORT, () => {
 
 export const io = new Server(httpServer);
 
-const allowedOrigins = ['http://localhost:5173', 'https://valentinalvarez98.github.io', 'http://localhost:8080', 'http://localhost:3000'];
+const allowedOrigins = ['http://localhost:5173', 'https://valentinalvarez98.github.io', 'http://localhost:8080', 'http://localhost:3000', "https://pf-alvarez-react-firebase.vercel.app/"];
 
 app.use(cors({
       origin: function (origin, callback) {
