@@ -25,6 +25,10 @@ const productsSchema = mongoose.Schema({
             required: true,
       },
 
+      discount: {
+            type: String,
+      },
+
       status: {
             type: Boolean,
             required: true,
