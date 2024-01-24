@@ -30,7 +30,7 @@ const httpServer = app.listen(PORT, () => {
 export const io = new Server(httpServer);
 
 const allowedOrigins = ['http://localhost:5173', 'https://valentinalvarez98.github.io', 'http://localhost:8080', 'http://localhost:3000', "https://pf-alvarez-react-firebase.vercel.app",
-      "https://pfalvarez-production.up.railway.app", "https://pf-alvarez-react-firebase-lsmx8i6dd-valentinalvarez98s-projects.vercel.app"
+      "https://pfalvarez-production.up.railway.app", "https://pf-alvarez-react-firebase-935ck9fav-valentinalvarez98s-projects.vercel.app"
 ];
 
 app.use(cors({
