@@ -8,11 +8,9 @@ export class MongoManager {
 
       constructor() {
 
-            const MONGO_URL = CONFIG.MONGO_URL;
-
             mongoose.set('strictQuery', false);
 
-            mongoose.connect(MONGO_URL, {
+            mongoose.connect(CONFIG.MONGO_URL, {
                   useNewUrlParser: true,
                   useUnifiedTopology: true,
             }).then(() => {

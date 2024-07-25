@@ -2,11 +2,10 @@ import dotenv from 'dotenv';
 import params from './params.js';
 import path from 'path';
 
-const mode = params.mode;
 
 
 dotenv.config({
-      path: `../.env.${mode}`
+      path: `../.env`
 });
 
 const CONFIG = {
@@ -27,7 +26,6 @@ const CONFIG = {
             clientSecret: process.env.GITHUB_CLIENT_SECRET,
             clientURL: process.env.GITHUB_CLIENT_URL
       },
-      ENV: mode,
       MAIL: {
             user: process.env.MAIL_USER,
             password: process.env.MAIL_PASS

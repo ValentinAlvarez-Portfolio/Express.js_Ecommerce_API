@@ -12,9 +12,6 @@ import {
 } from './models/manager/mongo/mongo.manager.js';
 import cors from 'cors';
 
-import passport from 'passport';
-import initPassport from './config/passport/passport.config.js';
-
 import router from './routes/app.routes.js';
 
 const app = express();
@@ -29,25 +26,8 @@ const httpServer = app.listen(PORT, () => {
 
 export const io = new Server(httpServer);
 
-const allowedOrigins = ['http://localhost:5173', 'https://valentinalvarez98.github.io', 'http://localhost:8080', 'http://localhost:3000', "https://pf-alvarez-react-firebase.vercel.app",
-      "https://pfalvarez-production.up.railway.app",
-      "https://pf-alvarez-react-firebase-a0g5qco1l-valentinalvarez98s-projects.vercel.app"
-];
+app.use(cors());
 
-app.use(cors({
-      origin: function (origin, callback) {
-            if (!origin) return callback(null, true);
-            if (allowedOrigins.indexOf(origin) === -1) {
-                  const msg = 'The CORS policy for this site does not ' +
-                        'allow access from the specified Origin.';
-                  return callback(new Error(msg), false);
-            }
-            return callback(null, true);
-      },
-      credentials: true,
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-      methods: ['GET', 'POST', 'PUT', 'DELETE']
-}));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({
@@ -59,10 +39,6 @@ app.use(session({
       resave: false,
       saveUninitialized: false,
 }));
-
-initPassport();
-app.use(passport.initialize());
-app.use(passport.session());
 
 app.engine('handlebars', handlebars.engine());
 app.set('views', __dirname + '/views');
