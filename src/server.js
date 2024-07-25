@@ -26,9 +26,18 @@ const httpServer = app.listen(PORT, () => {
 
 export const io = new Server(httpServer);
 
+const allowedOrigins = ["https://bunker-phoneshop.pages.dev/", "https://bunker-phoneshop.pages.dev"];
+
 app.use(cors({
-      origin: 'https://bunker-phoneshop.pages.dev/',
-      credentials: true
+      origin: function (origin, callback) {
+            if (!origin) return callback(null, true);
+            if (allowedOrigins.indexOf(origin) === -1) {
+                  var msg = 'The CORS policy for this site does not ' +
+                        'allow access from the specified Origin.';
+                  return callback(new Error(msg), false);
+            }
+            return callback(null, true);
+      }
 }));
 
 app.use(cookieParser());
