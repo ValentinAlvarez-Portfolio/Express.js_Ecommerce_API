@@ -26,7 +26,10 @@ const httpServer = app.listen(PORT, () => {
 
 export const io = new Server(httpServer);
 
-app.use(cors());
+app.use(cors({
+      origin: 'https://bunker-phoneshop.pages.dev/',
+      credentials: true
+}));
 
 app.use(cookieParser());
 app.use(express.json());
