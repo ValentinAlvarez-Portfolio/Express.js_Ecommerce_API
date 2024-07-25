@@ -11,18 +11,11 @@ import {
       authAdmin as adminMiddleware
 } from "../../middlewares/auth.middleware.js";
 
-import passport from "passport";
 
 import upload from "../../middlewares/multer.middleware.js";
 
 const usersRouter = Router();
 
-usersRouter.get('/github', passport.authenticate('github', {
-      scope: ['user: email']
-}), UsersController.loginGithub);
-usersRouter.get('/githubcallback', passport.authenticate('github', {
-      failureRedirect: '/login'
-}), UsersController.loginGithubCallback);
 usersRouter.get('/', adminMiddleware, UsersController.getAll);
 usersRouter.post('/login', UsersController.loginOne);
 usersRouter.post('/login/admin', UsersController.loginAdmin);
