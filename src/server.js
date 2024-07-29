@@ -24,7 +24,7 @@ const httpServer = app.listen(PORT, () => {
 
 export const io = new Server(httpServer);
 
-const allowedOrigins = ["http://localhost:3000","http://localhost:3000/","http://localhost:5173","http://localhost:5173/","https://bunker-phoneshop.pages.dev/", "https://bunker-phoneshop.pages.dev"];
+const allowedOrigins = ["http://localhost:3000","http://localhost:3000/","http://localhost:5173","http://localhost:5173/","https://bunker-phoneshop.pages.dev/", "https://bunker-phoneshop.pages.dev", "https://expressjsapi-production.up.railway.app/", "https://expressjsapi-production.up.railway.app"];
 
 app.use(cors({
       origin: function (origin, callback) {
