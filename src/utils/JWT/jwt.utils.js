@@ -3,7 +3,7 @@ import CONFIG from "../../config/environment/config.js";
 
 const KEY = CONFIG.KEY;
 
-export const generateJWT = (payload) => {
+export const generateJWT = async (payload) => {
 
       const token = jwt.sign({
             payload

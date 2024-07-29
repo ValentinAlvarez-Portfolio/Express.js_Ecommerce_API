@@ -1,8 +1,4 @@
 import dotenv from 'dotenv';
-import params from './params.js';
-import path from 'path';
-
-
 
 dotenv.config({
       path: `../.env`

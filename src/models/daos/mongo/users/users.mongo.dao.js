@@ -1,19 +1,28 @@
-import {
-      MongoManager
-} from "../../../manager/mongo/mongo.manager.js";
 import usersModel from "../../../schemas/users.schema.js";
 
 export class UsersMongoDAO {
 
-      constructor() {
+      async getAll(paginationDto) {
 
-            MongoManager.start();
+            const options = {
+                  page: paginationDto.page,
+                  limit: paginationDto.limit,
+                  select: '-password -__v -documents -password_reset_expires -password_reset_token -age -first_name -last_name',
+                  lean: true
+            };
 
-      };
+            const result = await usersModel.paginate({}, options);
 
-      async getAll() {
+            const { docs, ...meta } = result;
 
-            return await usersModel.find({}).lean();
+            return {
+
+                  users: docs,
+                  meta: {
+                        ...meta
+                  }
+
+            }
 
       };
 
@@ -33,6 +42,14 @@ export class UsersMongoDAO {
 
 
       };
+
+      async getOneByEmail(email) {
+
+            return await usersModel.findOne({
+                  email: email
+            }).lean();
+
+      }
 
       async addOne(payload) {
 
