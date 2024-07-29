@@ -527,7 +527,7 @@ export class UsersController {
                         admin.password = undefined;
                   }
 
-                  const token = generateJWT(admin);
+                  const token = await generateJWT(admin);
 
                   res.cookie('auth', token, {
                         httpOnly: true,
