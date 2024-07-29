@@ -1,5 +1,6 @@
 import {
       HTTP_STATUS,
+      successRes,
 } from '../../utils/responses/responses.utils.js';
 
 import {
@@ -28,108 +29,74 @@ import {
       sendResetPassword,
       sendResetPasswordConfirmation
 } from '../../utils/mailing/mailing.utils.js';
+import { UsersService } from '../../services/users/users.service.js';
 
 
 const {
       usersRepository
 } = getRepositories();
 
+const usersService = new UsersService();
+
 export class UsersController {
 
-      static async getAll(req, res, next) {
+      constructor() {
+
+            this.formattedSuccessRes = this.formattedSuccessRes.bind(this);
+
+      }
+
+      formattedSuccessRes(res, statusCode, message, payload) {
+
+            const response = successRes(statusCode, message, payload);
+
+            res.status(statusCode).json(response);
+
+      }
+
+      async getAll(req, res, next) {
 
             try {
 
-                  const result = await usersRepository.getAll();
+                  const { query } = req;
 
-                  req.message = `Usuarios encontrados correctamente`;
-                  req.payload = result;
-                  req.HTTP_STATUS = HTTP_STATUS.OK;
+                  const result = await usersService.getAll(query);
 
-                  successResponse(req, res, () => {
-                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
-                  })
+                  this.formattedSuccessRes(res, HTTP_STATUS.OK.status, 'Usuarios encontrados correctamente', result);
 
             } catch (error) {
 
-                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
-
-                  next({
-                        message: error.message,
-                        status: HTTP_STATUS.SERVER_ERROR.status
-                  });
+                  next(error)
 
             };
 
       };
 
-      static async loginOne(req, res, next) {
+      async loginOne(req, res, next) {
 
             try {
 
-                  const payload = req.body;
+                  const userDataForm = req.body;
 
-                  const user = await usersRepository.getOne(payload);
+                  const result = await usersService.login(userDataForm);
 
-                  if (!user && payload.email) {
+                  const { token, ...user } = result;
 
-                        const errorMessage = [`El usuario ${payload.email ? payload.email : payload.id}, no existe`]
+                  res.setHeader('Authorization', `Bearer ${token}`);
 
-                        logService(HTTP_STATUS.BAD_REQUEST, req, errorMessage);
-
-                        next({
-                              message: errorMessage,
-                              status: HTTP_STATUS.BAD_REQUEST.status
-                        });
-
-                        return;
-                  }
-
-                  try {
-
-                        const userToLogin = await usersRepository.loginOne(payload, user);
-
-                        const token = generateJWT(userToLogin);
-
-                        res.setHeader('Authorization', `Bearer ${token}`);
-
-                        res.cookie('auth', token, {
-                              maxAge: 60 * 60 * 1000,
-                              httpOnly: true,
-                              secure: true,
-                              sameSite: 'none',
-                        });
-
-                        req.message = `Usuario ${userToLogin.email}, encontrado correctamente`;
-                        req.payload = {
-                              ...userToLogin,
-                              token
-                        };
-                        req.HTTP_STATUS = HTTP_STATUS.OK;
-
-                        successResponse(req, res, () => {
-                              res.status(HTTP_STATUS.OK.status).json(req.successResponse);
-                        })
-
-                  } catch (error) {
-
-                        logService(HTTP_STATUS.BAD_REQUEST, req, error);
-
-                        next({
-                              message: error.message,
-                              status: HTTP_STATUS.BAD_REQUEST.status
-                        });
-
-                  };
-
+                  res.cookie('auth', token, {
+                        maxAge: 60 * 60 * 1000,
+                        httpOnly: true,
+                        secure: true,
+                        sameSite: 'none',
+                  }); 
+                  
+                  this.formattedSuccessRes(res, HTTP_STATUS.OK.status, 'Sesión iniciada correctamente', user);
+                  
             } catch (error) {
 
-                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
 
-                  next({
-                        message: error.message,
-                        status: HTTP_STATUS.SERVER_ERROR.status
-                  });
+                  next(error);
 
             };
 
@@ -219,7 +186,7 @@ export class UsersController {
 
                   const email = userPayload.payload.email;
 
-                  const result = await usersRepository.logout(email);
+                  await usersRepository.logout(email);
 
                   res.clearCookie('auth', {
                         httpOnly: true,
@@ -227,13 +194,7 @@ export class UsersController {
                         sameSite: 'none',
                   });
 
-                  req.message = `Usuario ${email}, desconectado correctamente`;
-                  req.payload = result;
-                  req.HTTP_STATUS = HTTP_STATUS.OK;
-
-                  successResponse(req, res, () => {
-                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
-                  })
+                  res.redirect('/');
 
             } catch (error) {
 
@@ -442,8 +403,6 @@ export class UsersController {
             }
 
       }
-
-
 
       static async deleteOne(req, res, next) {
 

@@ -6,6 +6,15 @@ export const successResponse = (status, message, data) => {
       }
 }
 
+export const successRes = (statusCode, message, data) => {
+      return {
+            ok: true,
+            status: statusCode,
+            message: message,
+            payload: data
+      }
+}
+
 export const errorResponse = (status, message, error) => {
 
       return {

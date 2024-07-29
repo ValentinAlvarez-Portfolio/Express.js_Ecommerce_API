@@ -6,6 +6,8 @@ import {
 
 import crypto from "crypto";
 
+import BadRequestException from "../../../common/exceptions/factory/badRequest-exception.js";
+
 const validEmail = (email) => {
 
       const emailRegex = /^\w+([\.-]?\w+)*@(?:hotmail|outlook|gmail|coder|github)\.(?:|com|es)+$/i;
@@ -24,6 +26,8 @@ class ValidationError extends Error {
       }
 
 }
+
+
 
 export class GetAllDTO {
 

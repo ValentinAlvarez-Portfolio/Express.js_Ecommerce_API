@@ -10,7 +10,7 @@ export const createHash = (password) => {
 
 };
 
-export const compareHash = (password, user) => {
+export const compareHash = async (password, user) => {
 
       const compare = bcrypt.compareSync(password, user.password);
 
