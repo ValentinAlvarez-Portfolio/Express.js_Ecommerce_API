@@ -17,5 +17,6 @@ export const generateJWT = async (payload) => {
 
 export const verifyJWT = (token) => {
       const decoded = jwt.verify(token, KEY);
+
       return decoded;
 };

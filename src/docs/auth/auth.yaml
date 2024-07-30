@@ -1,0 +1,124 @@
+
+openapi: 3.0.0
+info: 
+  version: 0.9.0
+  title: Auth API
+  description: API para el manejo de autenticación.
+
+tags:
+  - name: Auth
+    description: Operaciones relacionadas con autenticación
+
+paths:
+  /api/auth/checkSession:
+    get:
+      tags:
+      - Auth
+      summary: Verificar si la sesión del usuario es válida, según la cookie de sesión.
+      security:
+        - CookieAuth: []
+      responses:
+        200:
+          description: Sesión válida.
+        401:
+          description: Sesión inválida.
+        500:
+          description: Error interno del servidor.
+
+  /api/auth/logout:
+    get:
+      tags:
+      - Auth
+      summary: Cerrar sesión del usuario.
+      security:
+        - CookieAuth: []
+      responses:
+        200:
+          description: Sesion cerrada correctamente.
+        401:
+          description: No se ha iniciado sesión.
+        500:
+          description: Error interno del servidor.
+        
+
+  /api/auth/register:
+    post:
+      tags:
+      - Auth
+      summary: Registrar un nuevo usuario.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                email:
+                  type: string
+                age:
+                  type: integer
+                password:
+                  type: string
+                confirm_password:
+                  type: string
+      responses:
+        201:
+          description: Usuario ha sido registrado correctamente.
+        400:
+          description: Error en los datos de registro.
+        500:
+          description: Error interno del servidor.
+
+  /api/auth/login:
+    post:
+      tags:
+      - Auth
+      summary: Iniciar sesión como usuario.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: Usuario ha iniciado sesión correctamente.
+        400:
+          description: Error en los datos de inicio de sesión.
+        500:
+          description: Error interno del servidor.
+
+  /api/auth/login/admin:
+    post:
+      tags:
+      - Auth
+      summary: Iniciar sesión como administrador.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: Administrador ha iniciado sesión correctamente.
+        400:
+          description: Error en los datos de inicio de sesión.
+        500:
+          description: Error interno del servidor.
+
+      

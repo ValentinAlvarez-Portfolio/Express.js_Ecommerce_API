@@ -12,8 +12,7 @@ import {
 } from '../../models/repositories/index.repository.js';
 
 import {
-      generateJWT,
-      verifyJWT
+      generateJWT
 } from '../../utils/JWT/jwt.utils.js';
 
 import CONFIG from '../../config/environment/config.js';
@@ -23,7 +22,6 @@ import {
 } from '../../services/logger.service.js';
 
 import {
-      sendWelcomeEmail,
       sendGoodbyeEmail,
       sendInactiveEmail,
       sendResetPassword,
@@ -36,13 +34,13 @@ const {
       usersRepository
 } = getRepositories();
 
-const usersService = new UsersService();
-
 export class UsersController {
 
       constructor() {
 
             this.formattedSuccessRes = this.formattedSuccessRes.bind(this);
+
+            this.service = new UsersService();
 
       }
 
@@ -60,7 +58,7 @@ export class UsersController {
 
                   const { query } = req;
 
-                  const result = await usersService.getAll(query);
+                  const result = await this.service.getAll(query);
 
                   this.formattedSuccessRes(res, HTTP_STATUS.OK.status, 'Usuarios encontrados correctamente', result);
 
@@ -69,191 +67,6 @@ export class UsersController {
                   next(error)
 
             };
-
-      };
-
-      async loginOne(req, res, next) {
-
-            try {
-
-                  const userDataForm = req.body;
-
-                  const result = await usersService.login(userDataForm);
-
-                  const { token, ...user } = result;
-
-                  res.setHeader('Authorization', `Bearer ${token}`);
-
-                  res.cookie('auth', token, {
-                        maxAge: 60 * 60 * 1000,
-                        httpOnly: true,
-                        secure: true,
-                        sameSite: 'none',
-                  }); 
-                  
-                  this.formattedSuccessRes(res, HTTP_STATUS.OK.status, 'Sesión iniciada correctamente', user);
-                  
-            } catch (error) {
-
-
-                  next(error);
-
-            };
-
-      };
-
-      static async addOne(req, res, next) {
-
-            try {
-
-                  const payload = req.body;
-
-                  try {
-
-                        const exist = await usersRepository.getOne(payload.email);
-
-                        if (exist) {
-
-                              const errorMessage = [`El usuario ${payload.email}, ya existe`]
-
-                              logService(HTTP_STATUS.BAD_REQUEST, req, errorMessage);
-
-                              next({
-                                    message: errorMessage,
-                                    status: HTTP_STATUS.BAD_REQUEST.status
-                              });
-
-                              return;
-                        }
-
-                        const newUser = await usersRepository.addOne(payload);
-
-                        req.message = `Usuario ${newUser.email}, creado correctamente`;
-                        req.payload = newUser;
-                        req.HTTP_STATUS = HTTP_STATUS.CREATED;
-
-                        successResponse(req, res, () => {
-                              res.status(HTTP_STATUS.CREATED.status).json(req.successResponse);
-                        })
-
-                        try {
-
-                              await sendWelcomeEmail(payload.email);
-
-                        } catch (error) {
-
-                              logService(HTTP_STATUS.SERVER_ERROR, req, error);
-
-                              next({
-                                    message: error.message,
-                                    status: HTTP_STATUS.SERVER_ERROR.status
-                              });
-
-                        }
-
-
-                  } catch (error) {
-
-                        logService(HTTP_STATUS.SERVER_ERROR, req, error);
-
-                        next({
-                              message: error.message,
-                              status: HTTP_STATUS.SERVER_ERROR.status
-                        });
-
-                  };
-
-            } catch (error) {
-
-                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
-
-                  next({
-                        message: error.message,
-                        status: HTTP_STATUS.SERVER_ERROR.status
-                  });
-
-            };
-
-      };
-
-      static async logout(req, res, next) {
-
-            try {
-
-                  const userToken = req.cookies.auth;
-
-                  const userPayload = verifyJWT(userToken);
-
-                  const email = userPayload.payload.email;
-
-                  await usersRepository.logout(email);
-
-                  res.clearCookie('auth', {
-                        httpOnly: true,
-                        secure: true,
-                        sameSite: 'none',
-                  });
-
-                  res.redirect('/');
-
-            } catch (error) {
-
-                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
-
-                  next({
-                        message: error.message,
-                        status: HTTP_STATUS.SERVER_ERROR.status
-                  });
-
-            };
-
-      };
-
-      static async chechSession(req, res, next) {
-
-            try {
-
-                  const userToken = req.cookies.auth;
-
-                  const userPayload = verifyJWT(userToken);
-
-                  const email = userPayload.payload.email;
-
-                  if (!userPayload) {
-                        const errorMessage = [`El usuario ${email}, no está conectado`];
-
-                        logService(HTTP_STATUS.UNAUTHORIZED, req, errorMessage);
-
-                        next({
-                              message: errorMessage,
-                              status: HTTP_STATUS.UNAUTHORIZED.status
-                        });
-
-                        return;
-
-                  }
-
-                  req.message = `Usuario ${email}, conectado correctamente`;
-                  req.payload = {
-                        isAuthenticaded: true,
-                  }
-                  req.HTTP_STATUS = HTTP_STATUS.OK;
-
-                  successResponse(req, res, () => {
-                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
-                  })
-
-
-            } catch (error) {
-
-                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
-
-                  next({
-                        message: error.message,
-                        status: HTTP_STATUS.SERVER_ERROR.status
-                  });
-
-            }
 
       };
 
@@ -512,47 +325,6 @@ export class UsersController {
                   });
 
             }
-
-      };
-
-      static async loginAdmin(req, res, next) {
-
-            try {
-
-                  const payload = req.body;
-
-                  const admin = await usersRepository.loginAdmin(payload);
-
-                  if (admin) {
-                        admin.password = undefined;
-                  }
-
-                  const token = await generateJWT(admin);
-
-                  res.cookie('auth', token, {
-                        httpOnly: true,
-                        maxAge: 60 * 60 * 1000,
-                  });
-
-                  req.message = `Usuario admin encontrado correctamente`;
-                  req.payload = admin;
-                  req.HTTP_STATUS = HTTP_STATUS.OK;
-
-                  successResponse(req, res, () => {
-                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
-                  })
-
-
-            } catch (error) {
-
-                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
-
-                  next({
-                        message: error.message,
-                        status: HTTP_STATUS.SERVER_ERROR.status
-                  });
-
-            };
 
       };
 

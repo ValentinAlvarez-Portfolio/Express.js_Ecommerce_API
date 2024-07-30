@@ -33,6 +33,7 @@ import {
       swaggerOptions
 } from '../utils/swagger/swagger.utils.js';
 import errorHandler from '../middlewares/errorHandler.middleware.js';
+import authRouter from './auth/auth.routes.js';
 
 const spec = swaggerJSDoc(swaggerOptions);
 const router = Router();
@@ -40,6 +41,7 @@ const router = Router();
 router.use(loggerMiddelware);
 router.use('/', viewsRouter);
 router.use('/api/loggerTest', loggerRouter);
+router.use('/api/auth', authRouter);
 router.use('/api/users', usersRouter);
 router.use('/api/products', productsRouter);
 router.use('/api/carts', authMiddleware, cartsRouter);
