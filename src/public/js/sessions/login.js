@@ -14,7 +14,7 @@ form.addEventListener('submit', (e) => {
 
       if (obj.email !== 'admincoder@coder.com') {
 
-            fetch('/api/users/login', {
+            fetch('/api/auth/login', {
                   method: 'POST',
                   body: JSON.stringify(obj),
                   headers: {
@@ -50,7 +50,7 @@ form.addEventListener('submit', (e) => {
 
       } else {
 
-            fetch('/api/users/login/admin', {
+            fetch('/api/auth/login/admin', {
                   method: 'POST',
                   body: JSON.stringify(obj),
                   headers: {

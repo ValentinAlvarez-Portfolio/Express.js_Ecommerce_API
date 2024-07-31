@@ -21,8 +21,6 @@ const usersController = new UsersController();
 usersRouter.get('/', adminMiddleware, usersController.getAll.bind(usersController));
 
 usersRouter.post('/:id/documents', upload.array('documents'), UsersController.uploadDocuments);
-usersRouter.post('/sendResetPassword', UsersController.resetPasswordRequest);
-usersRouter.post('/resetPassword/:token', UsersController.resetPassword);
 
 usersRouter.put('/premium', adminMiddleware, UsersController.updateRole);
 usersRouter.put('/premium/:id', adminMiddleware, UsersController.updateRole);

@@ -11,7 +11,7 @@ resetPasswordRequestForm.addEventListener('submit', (e) => {
         obj[key] = value;
     });
 
-    fetch('/api/users/sendResetPassword', {
+    fetch('/api/auth/sendResetPassword', {
         method: 'POST',
         body: JSON.stringify(obj),
         headers: {
@@ -23,6 +23,8 @@ resetPasswordRequestForm.addEventListener('submit', (e) => {
         if (response.status === 200) {
 
             alert('Se ha enviado un email con las instrucciones para reestablecer la contraseña');
+
+            window.location.href = '/login';
 
         } else {
             response.json().then(data => {

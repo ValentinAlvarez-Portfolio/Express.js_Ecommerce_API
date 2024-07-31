@@ -3,12 +3,12 @@ import CONFIG from "../../config/environment/config.js";
 
 const KEY = CONFIG.KEY;
 
-export const generateJWT = async (payload) => {
+export const generateJWT = async (payload, expires) => {
 
       const token = jwt.sign({
             payload
       }, KEY, {
-            expiresIn: '12h'
+            expiresIn: expires ? expires : '12h'
       })
 
       return token;

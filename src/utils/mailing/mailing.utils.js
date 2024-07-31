@@ -6,7 +6,7 @@ const MAIL = {
       pass: CONFIG.MAIL.password
 };
 
-const URL = CONFIG.API_URL;
+const URL = CONFIG.VIEWS_URL;
 
 const TRANSPORTER = nodemailer.createTransport({
 
@@ -162,10 +162,6 @@ export async function sendInactiveEmail(emails) {
 
 export async function sendResetPassword(email, token) {
 
-      const now = new Date();
-
-      const createdAt = now.toISOString();
-
       const HTML = `
       <h1>Recuperar contraseña</h1>
       <div>
@@ -175,7 +171,7 @@ export async function sendResetPassword(email, token) {
           <h3>(El enlace expira en 1 hora y en caso de que haya expirado, se te redirigirá a la página de recuperación de contraseña para solicitar uno nuevo)</h3>
       </div>
       <div>
-              <p>${URL}/resetPassword?token=${token}&createdAt=${createdAt}</p>
+              <p>${URL}/resetPassword?token=${token}</p>
       </div>
 
       <div>

@@ -7,13 +7,13 @@ import UnauthorizedException from "../../common/exceptions/factory/unauthorized-
 import { generateJWT, verifyJWT } from "../../utils/JWT/jwt.utils.js";
 import { UsersService } from "../users/users.service.js";
 
-import { LoginUserDto, RegisterUserDto } from "../../models/dtos/users/index.js";
+import { LoginUserDto, RegisterUserDto, ResetPasswordDto } from "../../models/dtos/auth/index.js";
 
-import { sendWelcomeEmail } from "../../utils/mailing/mailing.utils.js";
+import { sendResetPassword, sendWelcomeEmail } from "../../utils/mailing/mailing.utils.js";
 
 import CONFIG from "../../config/environment/config.js";
 
-import { compareHash } from "../../utils/bcrypt/bcrypt.utils.js";
+import { compareHash, createHash } from "../../utils/bcrypt/bcrypt.utils.js";
 
 
 const {
@@ -137,6 +137,73 @@ export class AuthService {
             });
 
             return token;
+
+      }
+
+      async createResetToken(email) {
+
+            const user = await this.usersService.getOneByEmail(email);
+
+            const key = createHash(JSON.stringify(user._id))
+
+            if (!key) throw new BadRequestException('Error creating token', UsersService.name);
+
+            const token = await generateJWT({
+                  email,
+                  key
+            } , '5m');
+
+            return token
+
+      }
+
+      async sendResetToken(email) {
+
+            const token = await this.createResetToken(email);
+
+            const sendedEmail = await sendResetPassword(email, token);
+
+            if (!sendedEmail) throw new BadRequestException('Error sending email', UsersService.name);
+
+            return true;
+
+      }
+
+      async validateKey(id, key) {
+
+            const isValidKey = await compareHash(id, {
+                  password: key
+            })
+
+            if (!isValidKey) throw new UnauthorizedException('Invalid token', UsersService.name);
+
+            return true;
+
+      }
+
+      async resetPassword(resetPasswordDto, token) {
+
+            await new ResetPasswordDto(resetPasswordDto).validateData();
+
+            const { email, password } = resetPasswordDto;
+
+            const decodedToken = verifyJWT(token);
+
+            if (!decodedToken) throw new UnauthorizedException('Invalid token', UsersService.name);
+
+            if (decodedToken.payload.email !== email) throw new UnauthorizedException('Invalid token', UsersService.name);
+
+            const user = await this.usersService.getOneByEmail(email);
+
+            user.password = createHash(password);
+
+            await this.validateKey(JSON.stringify(user._id), decodedToken.payload.key);
+
+            const result = await this.dao.updateOne(user);
+
+            if (!result) throw new BadRequestException('Error updating password', UsersService.name);
+
+            return true;
 
       }
 

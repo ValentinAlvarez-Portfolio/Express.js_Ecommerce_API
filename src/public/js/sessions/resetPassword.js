@@ -12,7 +12,7 @@ resetPasswordForm.addEventListener('submit', (e) => {
         obj[key] = value;
     });
 
-    fetch(`/api/users/resetPassword/${obj.token}`, {
+    fetch(`/api/auth/resetPassword?token=${obj.token}`, {
 
         method: 'POST',
         body: JSON.stringify(obj),
@@ -31,9 +31,11 @@ resetPasswordForm.addEventListener('submit', (e) => {
 
             response.json().then(data => {
 
-                alert(data.error);
+                alert(data.error.toLowerCase() !== 'internal server error' ? data.error : 'El enlace de restablecimiento de contraseña ha caducado, por favor, solicite uno nuevo');
 
             });
+
+            window.location.href = '/resetPasswordRequest'
 
         }
 

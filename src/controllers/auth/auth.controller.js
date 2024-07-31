@@ -1,6 +1,8 @@
 import { HTTP_STATUS,successRes } from "../../utils/responses/responses.utils.js";
 
 import { AuthService } from "../../services/auth/auth.service.js";
+import { ResetPasswordDto } from "../../models/dtos/auth/index.js";
+
 export class AuthController {
 
       constructor() {
@@ -132,5 +134,44 @@ export class AuthController {
             };
 
       };
+
+      async sendResetPassword(req, res, next) {
+
+            try {
+                  const body = req.body;
+
+                  const email = body.email;
+
+                  await this.service.sendResetToken(email);
+
+                  this.formattedSuccessRes(res, HTTP_STATUS.OK.status, 'Reset password token sended correctly');
+
+            } catch (error) {
+
+                  next(error)
+
+            }
+            
+      }
+
+      async resetPassword(req, res, next) {
+
+            try {
+
+                  const token = req.query.token;
+
+                  const resetPasswordDto = new ResetPasswordDto(req.body);
+
+                  await this.service.resetPassword(resetPasswordDto, token);
+
+                  this.formattedSuccessRes(res, HTTP_STATUS.OK.status, 'Password reset correctly');
+
+            } catch (error) {
+
+                  next(error);
+
+            }
+
+      }
 
 }

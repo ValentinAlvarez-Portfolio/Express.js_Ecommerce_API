@@ -26,7 +26,7 @@ export default class HttpExceptionStrategy {
                         }
                   },
                   log: {
-                        level: error.logLevel,
+                        level: error.logLevel ? error.logLevel : 'error',
                         meta: {
                               exceptionType: instance,
                               message: message,

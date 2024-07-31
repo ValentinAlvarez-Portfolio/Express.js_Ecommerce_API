@@ -12,7 +12,7 @@ form.addEventListener('submit', (e) => {
             obj[key] = ['email', 'first_name', 'last_name'].includes(key) ? value.toLowerCase() : value;
       });
 
-      fetch('api/users/register', {
+      fetch('api/auth/register', {
 
             method: 'POST',
             body: JSON.stringify(obj),

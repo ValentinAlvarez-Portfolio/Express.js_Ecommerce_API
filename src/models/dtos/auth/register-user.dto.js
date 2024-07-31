@@ -1,5 +1,6 @@
 import { validateEmail } from "../../../utils/validations/valid-email.utils.js";
 import BadRequestException from "../../../common/exceptions/factory/badRequest-exception.js";
+import { createHash } from "../../../utils/bcrypt/bcrypt.utils.js";
 
 
 export class RegisterUserDto {
@@ -59,6 +60,8 @@ export class RegisterUserDto {
       async handleData() {
 
             await this.validateData();
+
+            this.password = createHash(this.password);
 
             return {
                   email: this.email,
