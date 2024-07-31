@@ -1,217 +1,132 @@
-import {
-    errorResponse,
-    HTTP_STATUS
-} from "../utils/responses/responses.utils.js";
 
 import {
     verifyJWT
 } from "../utils/JWT/jwt.utils.js";
+import UnauthorizedException from "../common/exceptions/factory/unauthorized-exception.js";
+import ForbiddenException from "../common/exceptions/factory/forbidden-exception.js";
 
-export const authFromHeader = (req, res, next) => {
 
-    try {
+// Clase Middleware para el manejo de la autenticación 
+export class AuthMiddleware {
 
-        const headerAuth = req.headers.authorization;
+    constructor(req, res, next, authRole = ['user', 'premium', 'admin']) {
 
-        if (!headerAuth) {
-
-            return res.status(HTTP_STATUS.UNAUTHORIZED.status).json(errorResponse(HTTP_STATUS.UNAUTHORIZED.message, 'No se ha enviado el token de autenticación', {
-                method: req.method,
-                url: req.originalUrl
-            }));
-
-        };
-
-        const token = headerAuth.split(' ')[1];
-
-        const decoded = verifyJWT(token);
-
-        req.user = decoded.payload;
-
-        next();
-
-    } catch (error) {
-
-        throw error;
-
-    };
-
-};
-
-export const authRedirect = (req, res, next) => {
-
-    try {
-
-        const cookieAuth = req.cookies.auth;
-
-        if (!cookieAuth) {
-
-            return res.redirect('/login');
-
-        };
-
-        const token = cookieAuth;
-
-        const decoded = verifyJWT(token);
-
-        req.user = decoded.payload;
-
-        next();
-
-    } catch (error) {
-
-        throw error;
+        this.req = req;
+        this.res = res;
+        this.next = next;
+        this.authRole = authRole ? authRole : ['user', 'premium', 'admin'];
 
     }
-};
 
-export const authFromCookie = (req, res, next) => {
+    async verifySession() {
 
-    try {
+        const headers = this.req.headers;
+        const cookies = this.req.cookies;
 
-        const cookieAuth = req.cookies.auth;
+        const auth = headers.authorization || cookies.auth;
 
-        if (!cookieAuth) {
-            return res.status(HTTP_STATUS.UNAUTHORIZED.status).json(errorResponse(HTTP_STATUS.UNAUTHORIZED.message, 'No se ha enviado el token de autenticación', {
-                method: req.method,
-                url: req.originalUrl
-            }));
-        };
+        if (!auth) {
 
-        const token = cookieAuth;
+            throw new UnauthorizedException('Invalid session', AuthMiddleware.name);
 
-        const decoded = verifyJWT(token);
+        }
 
-        req.user = decoded.payload;
+        const token = auth.includes('Bearer') ? auth.split(' ')[1] : auth;
 
-        next();
+        const decoded = this.verifyAndDecodeToken(token);
 
-    } catch (error) {
+        if (!decoded.payload) {
+            
+            throw new UnauthorizedException('Invalid session', AuthMiddleware.name);
 
-        throw error;
+        }
 
-    };
+        this.verifyRole(decoded.payload)
 
-};
+    }
 
-export const authAdmin = (req, res, next) => {
-
-    try {
-
-        const cookieAuth = req.cookies.auth;
-
-        if (!cookieAuth) {
-
-            return res.status(HTTP_STATUS.UNAUTHORIZED.status).json(errorResponse(HTTP_STATUS.UNAUTHORIZED.message, 'No se ha enviado el token de autenticación', {
-                method: req.method,
-                url: req.originalUrl
-            }));
-
-        };
-
-        const token = cookieAuth;
+    verifyAndDecodeToken(token) {
 
         const decoded = verifyJWT(token);
 
-        if (decoded.payload.role !== 'ADMIN') {
+        if (!decoded) {
+            throw new UnauthorizedException('Invalid session', AuthMiddleware.name);
+        }
 
-            return res.status(HTTP_STATUS.UNAUTHORIZED.status).json(errorResponse(HTTP_STATUS.UNAUTHORIZED.message, 'No está autorizado para acceder a este recurso', {
-                method: req.method,
-                url: req.originalUrl
-            }))
+        return decoded;
 
-        };
+    }
 
-        req.user = decoded.payload;
+    verifyRole(userData) {
 
-        next();
+        if (!this.authRole.includes(userData.role.toLowerCase())) {
 
-    } catch (error) {
+            throw new ForbiddenException('You do not have permission to access this resource', AuthMiddleware.name);
 
-        throw error;
+        }
 
-    };
+        this.asignUserToRequest(userData);
+
+    }
+
+    asignUserToRequest(userData) {
+
+        this.req.user = userData;
+
+        this.next();
+
+    }
+
+}
+
+export const authUser = (req, res, next) => {
+
+    const authMiddleware = new AuthMiddleware(req, res, next, ['user', 'premium', 'admin'])
+
+    authMiddleware.verifySession().catch(next);
 
 };
 
 export const authPremium = (req, res, next) => {
 
-    try {
+    const authMiddleware = new AuthMiddleware(req, res, next, ['premium', 'admin'])
 
-        const cookieAuth = req.cookies.auth;
-
-        if (!cookieAuth) {
-
-            return res.status(HTTP_STATUS.UNAUTHORIZED.status).json(errorResponse(HTTP_STATUS.UNAUTHORIZED.message, 'No se ha enviado el token de autenticación', {
-                method: req.method,
-                url: req.originalUrl
-            }));
-
-        };
-
-        const token = cookieAuth;
-
-        const decoded = verifyJWT(token);
-
-        if (decoded.payload.role !== 'ADMIN' && decoded.payload.role !== 'PREMIUM') {
-
-            return res.status(HTTP_STATUS.UNAUTHORIZED.status).json(errorResponse(HTTP_STATUS.UNAUTHORIZED.message, 'No está autorizado para acceder a este recurso', {
-                method: req.method,
-                url: req.originalUrl
-            }))
-
-        };
-
-        req.user = decoded.payload;
-
-        next();
-
-    } catch (error) {
-
-        throw error;
-
-    };
+    authMiddleware.verifySession().catch(next);
 
 };
 
-export const authUser = (req, res, next) => {
+export const authAdmin = (req, res, next) => {
 
-    try {
+    const authMiddleware = new AuthMiddleware(req, res, next, ['admin'])
 
-        const cookieAuth = req.cookies.auth;
-
-        if (!cookieAuth) {
-
-            return res.status(HTTP_STATUS.UNAUTHORIZED.status).json(errorResponse(HTTP_STATUS.UNAUTHORIZED.message, 'No se ha enviado el token de autenticación', {
-                method: req.method,
-                url: req.originalUrl
-            }));
-
-        };
-
-        const token = cookieAuth;
-
-        const decoded = verifyJWT(token);
-
-        const role = decoded.payload.role;
-
-        if (role === 'ADMIN') {
-
-            return res.status(HTTP_STATUS.UNAUTHORIZED.status).json(errorResponse(HTTP_STATUS.UNAUTHORIZED.message, 'No está autorizado para acceder a este recurso', {
-                method: req.method,
-                url: req.originalUrl
-            }))
-
-        };
-
-        req.user = decoded.payload;
-
-        next();
-
-    } catch (error) {
-
-        throw error;
-
-    };
+    authMiddleware.verifySession().catch(next);
 
 };
+
+export const authRedirect = (req, res, next) => {
+
+    const headers = req.headers;
+    const cookies = req.cookies;
+
+    const auth = headers.authorization || cookies.auth;
+
+    if (!auth) {
+
+        return res.redirect('/login');
+
+    }
+
+    const token = auth.includes('Bearer') ? auth.split(' ')[1] : auth;
+
+    const decoded = verifyJWT(token)
+
+    if (!decoded.payload) {
+            
+        return res.redirect('/login')
+    }
+
+    req.user = decoded.payload
+    
+    next();
+
+}

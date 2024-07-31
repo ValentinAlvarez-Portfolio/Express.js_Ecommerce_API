@@ -12,22 +12,15 @@ import {
 } from '../../models/repositories/index.repository.js';
 
 import {
-      generateJWT
-} from '../../utils/JWT/jwt.utils.js';
-
-import CONFIG from '../../config/environment/config.js';
-
-import {
       logService
 } from '../../services/logger.service.js';
 
 import {
       sendGoodbyeEmail,
       sendInactiveEmail,
-      sendResetPassword,
-      sendResetPasswordConfirmation
 } from '../../utils/mailing/mailing.utils.js';
 import { UsersService } from '../../services/users/users.service.js';
+import { UpdateUserDto } from '../../models/dtos/users/index.js';
 
 
 const {
@@ -52,6 +45,7 @@ export class UsersController {
 
       }
 
+      // Admin Routes
       async getAll(req, res, next) {
 
             try {
@@ -70,70 +64,57 @@ export class UsersController {
 
       };
 
-      static async updateOne(req, res, next) {
+      async adminUpdateUserRole(req, res, next) {
 
             try {
 
-                  const email = req.body.email ? req.body.email : req.user.email;
+                  const { id } = req.params;
 
-                  const payload = req.body;
+                  const result = await this.service.updateUserRole(id);
 
-                  const exist = await usersRepository.getOne(email);
-
-                  if (!exist) {
-
-                        const errorMessage = [`El usuario ${email}, no existe`]
-
-                        logService(HTTP_STATUS.BAD_REQUEST, req, errorMessage);
-
-                        next({
-                              message: errorMessage,
-                              status: HTTP_STATUS.BAD_REQUEST.status
-                        });
-
-                        return;
-
-                  }
-
-                  const updatedUser = await usersRepository.updateOne(exist, payload);
-
-                  const token = generateJWT(updatedUser);
-
-                  res.clearCookie('auth', {
-                        httpOnly: true,
-                        secure: true,
-                        sameSite: 'none',
-                  });
-
-                  res.setHeader('Authorization', `Bearer ${token}`);
-
-                  res.cookie('auth', token, {
-                        maxAge: 60 * 60 * 1000,
-                        httpOnly: true,
-                        secure: true,
-                        sameSite: 'none',
-                  });
-
-                  req.message = `Usuario ${updatedUser.email}, actualizado correctamente`;
-                  req.payload = {
-                        ...updatedUser,
-                        token
-                  };
-                  req.HTTP_STATUS = HTTP_STATUS.OK;
-
-                  successResponse(req, res, () => {
-                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
-                  })
+                  this.formattedSuccessRes(res, HTTP_STATUS.OK.status, `Rol del usuario ${result}, actualizado correctamente`);
 
 
             } catch (error) {
 
-                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
+                  next(error)
 
-                  next({
-                        message: error.message,
-                        status: HTTP_STATUS.SERVER_ERROR.status
-                  });
+            }
+
+      }
+
+      async deleteInactive(req, res, next) {
+
+            try {
+
+                  const result = await this.service.deleteInactives();
+
+                  this.formattedSuccessRes(res, HTTP_STATUS.OK.status, 'Usuarios inactivos eliminados correctamente', `Usuarios eliminados: ${result}`);
+
+            } catch (error) {
+
+                  next(error)
+
+            }
+
+      };
+
+      // User Routes
+      async updateOne(req, res, next) {
+
+            try {
+
+                  const { id } = req.user
+
+                  const updateUserDto = new UpdateUserDto(req.body);
+
+                  const result = await this.service.updateOne(id, updateUserDto)
+
+                  this.formattedSuccessRes(res, HTTP_STATUS.OK.status, `Usuario ${result.email}, actualizado correctamente`, result);
+
+            } catch (error) {
+
+                  next(error);
 
             };
 
@@ -286,46 +267,6 @@ export class UsersController {
 
       };
 
-      static async deleteInactive(req, res, next) {
-
-            try {
-
-                  const deletedUsers = await usersRepository.deleteInactive();
-
-                  req.message = `Usuarios eliminados correctamente`;
-                  req.payload = deletedUsers.result.deletedCount + ' usuarios eliminados:' + ' ' + deletedUsers.users;
-                  req.HTTP_STATUS = HTTP_STATUS.OK;
-
-                  successResponse(req, res, () => {
-                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
-                  })
-
-                  try {
-
-                        await sendInactiveEmail(deletedUsers.users);
-
-                  } catch (error) {
-
-                        logService(HTTP_STATUS.SERVER_ERROR, req, error);
-
-                        next({
-                              message: error.message,
-                              status: HTTP_STATUS.SERVER_ERROR.status
-                        });
-
-                  }
-
-            } catch (error) {
-
-                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
-
-                  next({
-                        message: error.message,
-                        status: HTTP_STATUS.SERVER_ERROR.status
-                  });
-
-            }
-
-      };
+      
 
 };

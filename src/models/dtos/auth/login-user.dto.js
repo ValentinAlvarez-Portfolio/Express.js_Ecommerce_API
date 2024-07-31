@@ -6,7 +6,7 @@ export class LoginUserDto {
 
       constructor(loginUserDto) {
 
-            if (!loginUserDto) return;
+            if (!loginUserDto) throw new BadRequestException('Data is required', LoginUserDto.name);
 
             const {
                   email,

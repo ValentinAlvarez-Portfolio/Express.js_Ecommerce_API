@@ -26,18 +26,10 @@ export class UsersMongoDAO {
 
       };
 
-      async getOne(payload) {
-
-            if (payload.email) {
-
-                  return await usersModel.findOne({
-                        email: payload.email
-                  }).lean();
-
-            }
+      async getOne(id) {
 
             return await usersModel.findOne({
-                  _id: payload._id
+                  _id: id
             }).lean();
 
 
@@ -51,17 +43,17 @@ export class UsersMongoDAO {
 
       }
 
-      async addOne(payload) {
+      async addOne(userData) {
 
-            return await usersModel.create(payload);
+            return await usersModel.create(userData);
 
       };
 
-      async updateOne(payload) {
+      async updateOne(id, userData) {
 
             return await usersModel.findOneAndUpdate({
-                  _id: payload._id
-            }, payload, {
+                  _id: id
+            }, userData, {
                   new: true
             });
 
@@ -79,14 +71,25 @@ export class UsersMongoDAO {
 
       };
 
-      async deleteInactive(payload) {
+      async deleteInactives(dateReference) {
 
             return await usersModel.deleteMany({
-                  email: {
-                        $in: payload
-                  }
-            })
-
-      };
+                  $and: [
+                        {
+                        $or: [
+                              { 'last_connection.last_login': { $lt: dateReference } },
+                              { 'last_connection.last_login': { $exists: false } }
+                        ]
+                        },
+                        {
+                        $or: [
+                              { 'last_connection.last_logout': { $lt: dateReference } },
+                              { 'last_connection.last_logout': { $exists: false } }
+                        ]
+                        }
+                  ]
+            });
+            
+      }
 
 };

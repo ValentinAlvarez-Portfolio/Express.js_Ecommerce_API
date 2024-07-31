@@ -14,20 +14,14 @@ import viewsRouter from './views/views.routes.js';
 import loggerRouter from './logger/logger.routes.js';
 
 import {
-      authFromCookie as authMiddleware
-} from '../middlewares/auth.middleware.js';
-
-import {
-      authAdmin as adminMiddleware
+      authUser,
+      authAdmin
 } from '../middlewares/auth.middleware.js';
 
 import {
       addLogger as loggerMiddelware
 } from '../middlewares/logger.middleware.js';
 
-import {
-      errorHandlerMiddleware,
-} from '../middlewares/responses.middleware.js';
 
 import {
       swaggerOptions
@@ -44,8 +38,8 @@ router.use('/api/loggerTest', loggerRouter);
 router.use('/api/auth', authRouter);
 router.use('/api/users', usersRouter);
 router.use('/api/products', productsRouter);
-router.use('/api/carts', authMiddleware, cartsRouter);
-router.use('/api/mocks', adminMiddleware, usersMocksRouter, productsMocksRouter, cartsMocksRouter);
+router.use('/api/carts', authUser, cartsRouter);
+router.use('/api/mocks', authAdmin, usersMocksRouter, productsMocksRouter, cartsMocksRouter);
 router.use('/api/docs', swaggerUiExpress.serve, swaggerUiExpress.setup(spec));
 router.use(errorHandler);
 

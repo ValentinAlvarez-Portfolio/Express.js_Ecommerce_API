@@ -1,11 +1,11 @@
 import { validateEmail } from "../../../utils/validations/valid-email.utils.js";
-
+import BadRequestException from "../../../common/exceptions/factory/badRequest-exception.js";
 
 export class ResetPasswordDto {
 
       constructor(resetPasswordDto) {
 
-            if (!resetPasswordDto) return;
+            if (!resetPasswordDto) throw new BadRequestException('Data is required', ResetPasswordDto.name);
             
             const {
                   email,

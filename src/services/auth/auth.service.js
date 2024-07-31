@@ -151,7 +151,7 @@ export class AuthService {
             const token = await generateJWT({
                   email,
                   key
-            } , '5m');
+            } , '1h');
 
             return token
 

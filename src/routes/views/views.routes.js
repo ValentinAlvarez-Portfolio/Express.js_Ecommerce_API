@@ -3,8 +3,8 @@ import {
 } from "express";
 
 import {
-    authFromCookie as authMiddleware,
-    authAdmin as adminMiddleware,
+    authUser,
+    authAdmin,
     authRedirect
 } from "../../middlewares/auth.middleware.js";
 
@@ -17,9 +17,9 @@ const viewsRouter = Router();
 viewsRouter.get('/', authRedirect, ViewsController.home);
 viewsRouter.get('/login', ViewsController.login);
 viewsRouter.get('/register', ViewsController.register);
-viewsRouter.get('/profile', authMiddleware, ViewsController.profile);
-viewsRouter.get('/products', authMiddleware, ViewsController.products);
-viewsRouter.get('/admin/updateRole', adminMiddleware, ViewsController.modifyRole);
+viewsRouter.get('/profile', authRedirect, ViewsController.profile);
+viewsRouter.get('/products', authRedirect, ViewsController.products);
+viewsRouter.get('/admin/updateRole', authRedirect, authAdmin, ViewsController.modifyRole);
 viewsRouter.get('/resetPasswordRequest', ViewsController.resetPasswordRequest);
 viewsRouter.get('/resetPassword', ViewsController.resetPassword);
 

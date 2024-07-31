@@ -7,7 +7,7 @@ export class RegisterUserDto {
 
       constructor(registerUserDto) {
 
-            if (!registerUserDto) return;
+            if (!registerUserDto) throw new BadRequestException('Data is required', RegisterUserDto.name);
 
             const {
                   email,

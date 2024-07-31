@@ -7,16 +7,15 @@ import {
 
 
 import {
-    authPremium as premiumMiddleware,
-    authFromCookie as authMiddleware,
+    authPremium
 } from "../../middlewares/auth.middleware.js";
 
 const productsRouter = Router();
 
 productsRouter.get('/', ProductsController.getAll);
 productsRouter.get('/:_id', ProductsController.getById);
-productsRouter.post('/', premiumMiddleware, ProductsController.addOne);
-productsRouter.put('/:id', premiumMiddleware, ProductsController.updateOne);
-productsRouter.delete('/:id', premiumMiddleware, ProductsController.deleteOne);
+productsRouter.post('/', authPremium, ProductsController.addOne);
+productsRouter.put('/:id', authPremium, ProductsController.updateOne);
+productsRouter.delete('/:id', authPremium, ProductsController.deleteOne);
 
 export default productsRouter;

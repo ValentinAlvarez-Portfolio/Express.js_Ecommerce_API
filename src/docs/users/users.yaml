@@ -8,12 +8,17 @@ info:
 tags:
 - name: Users
   description: Operaciones relacionadas con usuarios
+- name: Role Admin
+  description: Operaciones que solo puede realizar un usuario con rol de administrador.
+- name: Role User
+  description: Operaciones que puede realizar cualquier usuario registrado.
 
 paths:
-  /api/users/:
+  /api/users/admin/getAll:
     get:
       tags:
       - Users
+      - Role Admin
       summary: Obtener todos los usuarios.
       security:
         - CookieAuth: []
@@ -37,11 +42,58 @@ paths:
           description: No está autorizado.
         500:
           description: Error interno del servidor.
+
+  /api/users/admin/update/premium/{id}:
+    patch:
+      tags:
+      - Users
+      - Role Admin
+      summary: Actualizar rol de un usuario a premium.
+      security:
+        - CookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: false
+          description: ID del usuario.
+      responses:
+        200:
+          description: Rol del usuario actualizado correctamente.
+        400:
+          description: Error al intentar actualizar el rol del usuario.
+        401:
+          description: No está autorizado.
+        403:
+          description: No tiene permisos para realizar esta acción.
+        500:
+          description: Error interno del servidor.
+
+  /api/users/admin/delete/inactives:
+    delete:
+      tags:
+      - Users
+      - Role Admin
+      summary: Eliminar los usuarios que no han tenido actividad en los últimos 30 días.
+      security:
+        - CookieAuth: []
+      responses:
+        200:
+          description: Usuarios inactivos eliminados correctamente.
+        400:
+          description: Error al intentar eliminar los usuarios inactivos.
+        401:
+          description: No está autorizado.
+        403:
+          description: No tiene permisos para realizar esta acción.
+
   
   /api/users/{uid}/documents:
     post:
       tags:
       - Users
+      - Role User
       summary: Sube uno o múltiples documentos para un usuario.
       description: Permite a un usuario subir documentos que serán almacenados y asociados a su perfil.
       parameters:
@@ -84,43 +136,12 @@ paths:
                   message:
                     type: string
 
-  /api/users/premium/{id}:
-    put:
-      tags:
-      - Users
-      summary: Actualizar rol del usuario.
-      security:
-        - CookieAuth: []
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: false
-          description: ID del usuario.
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-      responses:
-        200:
-          description: Rol del usuario actualizado correctamente.
-        500:
-          description: Error en los datos proporcionados.
-        401:
-          description: No está autorizado.
-        404:
-          description: No se ha encontrado el usuario.
 
   /api/users/update:
-    put:
+    patch:
       tags:
       - Users
+      - Role User
       summary: Actualizar información del usuario.
       security:
         - CookieAuth: []
@@ -135,20 +156,25 @@ paths:
                   type: string
                 last_name:
                   type: string
-                email:
-                  type: string
                 age:
                   type: integer
+                phone:
+                  type: string
       responses:
         200:
           description: Información del usuario actualizada correctamente.
         400:
           description: Error en los datos proporcionados.
+        401:
+          description: No está autorizado.
+        500:
+          description: Error interno del servidor.
 
   /api/users/delete:
     delete:
       tags:
       - Users
+      - Role User
       summary: Eliminar cuenta de usuario.
       security:
         - CookieAuth: []
@@ -168,21 +194,6 @@ paths:
           description: Error al intentar eliminar el usuario.
         500:
           description: Error al intentar eliminar el usuario.
-
-  /api/users/deleteInactive:
-    delete:
-      tags:
-      - Users
-      summary: Eliminar usuarios inactivos.
-      security:
-        - CookieAuth: []
-      responses:
-        200:
-          description: Usuarios inactivos eliminados correctamente.
-        400:
-          description: Error al intentar eliminar los usuarios inactivos.
-        500:
-          description: Error al intentar eliminar los usuarios inactivos.
 
 components:
   securitySchemes:
