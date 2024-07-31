@@ -20,6 +20,7 @@ paths:
       - Users
       - Role Admin
       summary: Obtener todos los usuarios.
+      description: Devuelve un listado con todos los usuarios registrados en la aplicación.
       security:
         - CookieAuth: []
       parameters:
@@ -49,6 +50,7 @@ paths:
       - Users
       - Role Admin
       summary: Actualizar rol de un usuario a premium.
+      description: Permite actualizar el rol de un usuario a premium, siempre y cuando el usuario tenga los documentos necesarios subidos.
       security:
         - CookieAuth: []
       parameters:
@@ -76,6 +78,7 @@ paths:
       - Users
       - Role Admin
       summary: Eliminar los usuarios que no han tenido actividad en los últimos 30 días.
+      description: Elimina los usuarios que no han tenido actividad en la aplicación en los últimos 30 días.
       security:
         - CookieAuth: []
       responses:
@@ -89,20 +92,15 @@ paths:
           description: No tiene permisos para realizar esta acción.
 
   
-  /api/users/{uid}/documents:
-    post:
+  /api/users/documents:
+    patch:
       tags:
       - Users
       - Role User
-      summary: Sube uno o múltiples documentos para un usuario.
-      description: Permite a un usuario subir documentos que serán almacenados y asociados a su perfil.
-      parameters:
-        - in: path
-          name: uid
-          required: true
-          description: ID único del usuario.
-          schema:
-            type: string
+      summary: Sube los documentos necesarios para la verificación de la cuenta.
+      description: 'Sube los 3 documentos necesarios para la verificación de la cuenta. Los documentos deben ser los siguientes: id, comprobante de domicilio y estado de cuenta. Es importante que el nombre de los archivos sea el mismo que el tipo de documento que representan.'
+      security:
+        - CookieAuth: []
       requestBody:
         description: Datos del documento a subir.
         required: true
@@ -119,22 +117,12 @@ paths:
       responses:
         200:
           description: Documentos subidos correctamente.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
         400:
-          description: Error en la solicitud.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
+          description: Error en los datos proporcionados.
+        401:
+          description: No está autorizado.
+        500:
+          description: Error interno del servidor.
 
 
   /api/users/update:
@@ -143,6 +131,7 @@ paths:
       - Users
       - Role User
       summary: Actualizar información del usuario.
+      description: Permite actualizar la información del usuario.
       security:
         - CookieAuth: []
       requestBody:
@@ -170,30 +159,43 @@ paths:
         500:
           description: Error interno del servidor.
 
+  /api/users/update/premium:
+    patch:
+      tags:
+      - Users
+      - Role User
+      summary: Actualizar a cuenta premium.
+      description: Actualiza la cuenta del usuario logueado a una cuenta premium, siempre y cuando el usuario tenga los documentos necesarios subidos.
+      security:
+        - CookieAuth: []
+      responses:
+        200:
+          description: Cuenta actualizada a premium correctamente.
+        400:
+          description: Error al intentar actualizar la cuenta a premium.
+        401:
+          description: No está autorizado.
+        500:
+          description: Error interno del servidor.
+
   /api/users/delete:
     delete:
       tags:
       - Users
       - Role User
-      summary: Eliminar cuenta de usuario.
+      summary: Elimina la cuenta del usuario.
+      description: Elimina la cuenta del usuario y todos los datos asociados a ella.
       security:
         - CookieAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
       responses:
         200:
           description: Usuario eliminado correctamente.
         400:
-          description: Error al intentar eliminar el usuario.
+          description: Error al intentar eliminar la cuenta.
+        401:
+          description: No está autorizado.
         500:
-          description: Error al intentar eliminar el usuario.
+          description: Error interno del servidor.
 
 components:
   securitySchemes:

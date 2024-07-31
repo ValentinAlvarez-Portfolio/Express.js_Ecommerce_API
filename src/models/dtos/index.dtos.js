@@ -1,18 +1,4 @@
-import {
-      GetAllDTO,
-      SaveUserDTO,
-      LoadUserDTO,
-      GetUserDTO,
-      UpdateDocumentsDTO,
-      UpdateRolePremiumDTO,
-      UpdateRoleUserDTO,
-      UpdateUserDTO,
-      DeleteUserDTO,
-      DeleteInactiveUsersDTO,
-      LoadAdminDTO,
-      CreateResetTokenDTO,
-      ResetPasswordDTO
-} from "./users/users.dto.js";
+
 
 import {
       GetProductDTO,
@@ -29,19 +15,6 @@ import {
 } from "./carts/carts.dto.js";
 
 export const getDTOS = () => ({
-      GetAllDTO,
-      SaveUserDTO,
-      LoadUserDTO,
-      GetUserDTO,
-      UpdateDocumentsDTO,
-      UpdateRolePremiumDTO,
-      UpdateRoleUserDTO,
-      UpdateUserDTO,
-      DeleteUserDTO,
-      DeleteInactiveUsersDTO,
-      LoadAdminDTO,
-      CreateResetTokenDTO,
-      ResetPasswordDTO,
       GetCartDTO,
       SaveCartDTO,
       DeleteCartDTO,

@@ -2,6 +2,10 @@ import BadRequestException from "../../common/exceptions/factory/badRequest-exce
 
 import { getDAOS } from "../../models/daos/index.daos.js";
 import { PaginationDto } from "../../common/dto/pagination-dto.js";
+import UnauthorizedException from "../../common/exceptions/factory/unauthorized-exception.js";
+
+import path from 'path';
+import { sendGoodbyeEmail } from "../../utils/mailing/mailing.utils.js";
 
 const {
       usersMongoDAO
@@ -68,7 +72,7 @@ export class UsersService {
 
       }
 
-      async updateUserRole(id) {
+      async updateRole(id) {
 
             const user = await this.getOne(id);
 
@@ -77,7 +81,7 @@ export class UsersService {
             const missingDocuments = await this.checkDocuments(user.documents);
 
             if (missingDocuments && missingDocuments.length > 0) {
-                  throw new BadRequestException(`Missing documents: ${missingDocuments.join(', ')}`, UsersService.name);
+                  throw new UnauthorizedException('Missing documents', UsersService.name);
             }
 
             const result = await this.dao.updateOne(id, {
@@ -95,8 +99,8 @@ export class UsersService {
 
             const requiredDocuments = {
                   id: ['id', 'identification', 'identificacion'],
-                  proofOfAddress: ['address', 'comprobante de domicilio', 'comprobante_de_domicilio', 'proof of address', 'proof_of_address'],
-                  accountStatement: ['account', 'statement', 'account statement', 'account_statement', 'estado de cuenta', 'estado_de_cuenta'],
+                  comprobante_de_domicilio: ['address', 'comprobante de domicilio', 'comprobante_de_domicilio', 'proof of address', 'proof_of_address'],
+                  estado_de_cuenta: ['account', 'statement', 'account statement', 'account_statement', 'estado de cuenta', 'estado_de_cuenta'],
             }
 
             const documentsNames = documents.map(doc => doc.name.toLowerCase());
@@ -117,6 +121,56 @@ export class UsersService {
 
       }
 
+      async formatFiles(files) {
+
+            const formattedFiles = files.map(file => {
+
+                  const formattedName = path.basename(file.originalname, path.extname(file.originalname)).toLowerCase().replace(/ /g, '_');
+
+                  const fileExtension = path.extname(file.originalname);
+
+                  return {
+                        name: formattedName,
+                        reference: file.filename,
+                        extension: fileExtension
+                  }
+                  
+            })
+
+            return formattedFiles;
+
+      }
+
+      async uploadDocuments(id, files) {
+
+            const user = await this.getOne(id);
+
+            if(user.documents && user.documents.length > 2) throw new BadRequestException('Documents already uploaded', UsersService.name);
+
+            const formattedFiles = await this.formatFiles(files);
+
+            const missingDocuments = await this.checkDocuments(formattedFiles);
+
+            if (missingDocuments && missingDocuments.length > 0) {
+
+                  throw new BadRequestException(`Missing documents: ${missingDocuments.join(', ')}`, UsersService.name);
+
+            }
+
+            const result = await this.dao.updateOne(id, {
+                  ...user,
+                  documents: formattedFiles
+            });
+
+            if (!result || !result.documents) throw new BadRequestException('Documents not uploaded', UsersService.name);
+
+            return {
+                  email: result.email,
+                  documents: result.documents.map(doc => doc.name)
+            };
+
+      }
+
       async deleteInactives() {
 
             const dateReference = new Date();
@@ -128,6 +182,20 @@ export class UsersService {
             if (deletedCount === 0) throw new BadRequestException('No inactives users found', UsersService.name);
             
             return deletedCount;
+
+      }
+
+      async deleteOne(id) {
+
+            const { email } = await this.getOne(id);
+
+            const result = await this.dao.deleteOne(id);
+
+            await sendGoodbyeEmail(email);
+
+            if (!result) throw new BadRequestException('User not deleted', UsersService.name);
+
+            return email;
 
       }
       

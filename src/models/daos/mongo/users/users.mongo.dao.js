@@ -59,15 +59,11 @@ export class UsersMongoDAO {
 
       };
 
-      async deleteOne(payload, email) {
+      async deleteOne(id) {
 
-            return await usersModel.findOneAndDelete(
-                  payload.email ? {
-                        email: payload.email
-                  } : {
-                        email: email
-                  }
-            );
+            return await usersModel.deleteOne({
+                  _id: id
+            });
 
       };
 
@@ -87,9 +83,10 @@ export class UsersMongoDAO {
                               { 'last_connection.last_logout': { $exists: false } }
                         ]
                         }
-                  ]
+                  ],
+                  role: { $ne: 'admin' }
             });
-            
+
       }
 
 };

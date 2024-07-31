@@ -25,12 +25,12 @@ usersRouter.patch('/admin/update/premium/:id', authAdmin, usersController.adminU
 usersRouter.delete('/admin/delete/inactives', authAdmin, usersController.deleteInactive.bind(usersController));
 
 // User Routes
-usersRouter.post('/:id/documents', upload.array('documents'), UsersController.uploadDocuments);
+usersRouter.patch('/documents', authUser, upload.array('documents'), usersController.uploadDocuments.bind(usersController));
 
 usersRouter.patch('/update', authUser, usersController.updateOne.bind(usersController));
-usersRouter.patch('/update/premium', authUser, UsersController.updateRole);
+usersRouter.patch('/update/premium', authUser, usersController.updateRole.bind(usersController));
 
-usersRouter.delete('/delete', authUser, UsersController.deleteOne);
+usersRouter.delete('/delete', authUser, usersController.deleteOne.bind(usersController));
 
 
 export default usersRouter;

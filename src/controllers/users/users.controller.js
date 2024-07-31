@@ -3,29 +3,9 @@ import {
       successRes,
 } from '../../utils/responses/responses.utils.js';
 
-import {
-      prepareUsersSuccessResponse as successResponse
-} from '../../middlewares/responses.middleware.js';
-
-import {
-      getRepositories
-} from '../../models/repositories/index.repository.js';
-
-import {
-      logService
-} from '../../services/logger.service.js';
-
-import {
-      sendGoodbyeEmail,
-      sendInactiveEmail,
-} from '../../utils/mailing/mailing.utils.js';
 import { UsersService } from '../../services/users/users.service.js';
 import { UpdateUserDto } from '../../models/dtos/users/index.js';
 
-
-const {
-      usersRepository
-} = getRepositories();
 
 export class UsersController {
 
@@ -70,7 +50,7 @@ export class UsersController {
 
                   const { id } = req.params;
 
-                  const result = await this.service.updateUserRole(id);
+                  const result = await this.service.updateRole(id);
 
                   this.formattedSuccessRes(res, HTTP_STATUS.OK.status, `Rol del usuario ${result}, actualizado correctamente`);
 
@@ -120,148 +100,58 @@ export class UsersController {
 
       };
 
-      static async uploadDocuments(req, res, next) {
+      async uploadDocuments(req, res, next) {
 
             try {
 
-                  const _id = req.params.id;
+                  const { id } = req.user;
                   const files = req.files;
 
-                  const updatedUser = await usersRepository.uploadDocuments(_id, files);
+                  const result = await this.service.uploadDocuments(id, files);
 
-                  req.message = `Usuario ${updatedUser.email}, actualizado correctamente`;
-                  req.payload = updatedUser;
-                  req.HTTP_STATUS = HTTP_STATUS.OK;
-
-                  successResponse(req, res, () => {
-                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
-                  })
+                  this.formattedSuccessRes(res, HTTP_STATUS.OK.status, `Documentos del usuario ${result.email}, subidos correctamente`, result.documents);
 
             } catch (error) {
 
-                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
-
-                  next({
-                        message: error.message,
-                        status: HTTP_STATUS.SERVER_ERROR.status
-                  });
+                  next(error)
 
             }
 
       };
 
-      static async updateRole(req, res, next) {
+      async updateRole(req, res, next) {
 
             try {
 
-                  const _id = req.params.id;
-                  const body = req.body;
-                  const payload = {
-                        email: body.email,
-                        _id: _id,
-                  }
+                  const { id } = req.user;
 
-                  const user = await usersRepository.updateRole(payload);
+                  const result = await this.service.updateRole(id);
 
-                  if (!user) {
-
-                        const errorMessage = [`El usuario ${payload}, no existe`]
-
-                        logService(HTTP_STATUS.BAD_REQUEST, req, errorMessage);
-
-                        next({
-                              message: errorMessage,
-                              status: HTTP_STATUS.BAD_REQUEST.status
-                        });
-
-                        return;
-                  }
-
-                  req.message = `Rol del usuario ${user.email}, actualizado correctamente`;
-                  req.payload = user;
-                  req.HTTP_STATUS = HTTP_STATUS.OK;
-
-                  successResponse(req, res, () => {
-                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
-                  })
+                  this.formattedSuccessRes(res, HTTP_STATUS.OK.status, `Rol del usuario ${result}, actualizado correctamente`);
 
             } catch (error) {
 
-                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
-
-                  next({
-                        message: error.message,
-                        status: HTTP_STATUS.SERVER_ERROR.status
-                  });
+                  next(error)
 
             }
 
       }
 
-      static async deleteOne(req, res, next) {
+      async deleteOne(req, res, next) {
 
             try {
 
-                  const payload = req.user;
+                  const { id } = req.user;
 
-                  const body = req.body;
-
-                  const email = body.email ? body.email : payload.email;
-
-                  const user = await usersRepository.getOne(email);
-
-                  if (!user) {
-
-                        const errorMessage = [`El usuario ${email}, no existe`]
-
-                        logService(HTTP_STATUS.BAD_REQUEST, req, errorMessage);
-
-                        next({
-                              message: errorMessage,
-                              status: HTTP_STATUS.BAD_REQUEST.status
-                        });
-
-                        return;
-                  }
-
-                  const deletedUser = await usersRepository.deleteOne({
-                        email: user.email
-                  });
+                  const result = await this.service.deleteOne(id);
 
                   res.clearCookie('auth');
 
-                  req.message = `Usuario ${deletedUser.email}, eliminado correctamente`;
-                  req.payload = deletedUser;
-                  req.HTTP_STATUS = HTTP_STATUS.OK;
-
-                  successResponse(req, res, () => {
-                        res.status(HTTP_STATUS.OK.status).json(req.successResponse);
-                  })
-
-                  try {
-
-                        await sendGoodbyeEmail(payload.email);
-
-                  } catch (error) {
-
-                        logService(HTTP_STATUS.SERVER_ERROR, req, error);
-
-                        next({
-                              message: error.message,
-                              status: HTTP_STATUS.SERVER_ERROR.status
-                        });
-
-                  }
-
+                  this.formattedSuccessRes(res, HTTP_STATUS.OK.status, `Usuario ${result}, eliminado correctamente`);
 
             } catch (error) {
 
-                  logService(HTTP_STATUS.SERVER_ERROR, req, error);
-
-                  next({
-                        message: error.message,
-                        status: HTTP_STATUS.SERVER_ERROR.status
-                  });
+                  next(error)
 
             };
 
